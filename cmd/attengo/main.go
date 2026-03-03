@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "./data/assistance.db?_journal=WAL&_timeout=5000")
+	db, err := sql.Open("sqlite3", "./assistance.db?_journal=WAL&_timeout=5000")
 	if err != nil {
 		log.Fatal(err)
 	}
