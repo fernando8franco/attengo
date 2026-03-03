@@ -1,31 +1,29 @@
 package main
 
 import (
-	"context"
-	"database/sql"
-	"fmt"
 	"log"
 
-	"github.com/fernando8franco/attengo/internal/database"
+	"github.com/fernando8franco/attengo/internal/config"
+	"github.com/fernando8franco/attengo/internal/db"
+	"github.com/fernando8franco/attengo/internal/repository"
+	"github.com/fernando8franco/attengo/internal/routes"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "./assistance.db?_journal=WAL&_timeout=5000")
+	cfg := config.Load()
+
+	conn, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to db: %v", err)
 	}
-	defer db.Close()
+	defer conn.Close()
 
-	dbQueries := database.New(db)
+	queries := repository.New(conn)
+	router := routes.SetupRouter(*queries, cfg)
 
-	r, err := dbQueries.CreateRequiredHours(context.Background(), database.CreateRequiredHoursParams{
-		Type:    "practicas",
-		Minutes: 30000,
-	})
-	if err != nil {
-		log.Fatal(err)
+	log.Printf("Server starting on %s", cfg.Port)
+	if err := router.Run(cfg.Port); err != nil {
+		log.Fatalf("server error: %v", err)
 	}
-
-	fmt.Println(r)
 }
