@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: required_hours.sql
 
-package database
+package repository
 
 import (
 	"context"
