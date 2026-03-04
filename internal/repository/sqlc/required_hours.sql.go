@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: required_hours.sql
 
-package repository
+package sqlc
 
 import (
 	"context"
@@ -16,8 +16,8 @@ RETURNING id, type, minutes, created_at, updated_at, deleted_at
 `
 
 type CreateRequiredHoursParams struct {
-	Type    string
-	Minutes int64
+	Type    string `json:"type"`
+	Minutes int64  `json:"minutes"`
 }
 
 func (q *Queries) CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (RequiredHour, error) {

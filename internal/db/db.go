@@ -1,6 +1,10 @@
 package db
 
-import "database/sql"
+import (
+	"database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
+)
 
 func Connect(name string) (*sql.DB, error) {
 	conn, err := sql.Open("sqlite3", name+"?_journal=WAL&_timeout=5000&_fk=true")

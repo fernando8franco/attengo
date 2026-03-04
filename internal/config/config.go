@@ -20,7 +20,7 @@ func Load() *Config {
 
 	return &Config{
 		Port:        getEnv("PORT", ":8080"),
-		DatabaseURL: getEnv("DATABASE_URL", "assistance.db"),
+		DatabaseURL: getEnv("DATABASE_URL", "./data/assistance.db"),
 		Env:         getEnv("ENV", "development"),
 	}
 }

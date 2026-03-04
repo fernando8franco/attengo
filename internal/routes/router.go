@@ -3,11 +3,11 @@ package routes
 import (
 	"github.com/fernando8franco/attengo/internal/config"
 	"github.com/fernando8franco/attengo/internal/handler"
-	"github.com/fernando8franco/attengo/internal/repository"
+	"github.com/fernando8franco/attengo/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(q repository.Queries, cfg *config.Config) *gin.Engine {
+func SetupRouter(rhSvc service.RequiredHourService, cfg *config.Config) *gin.Engine {
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -16,7 +16,7 @@ func SetupRouter(q repository.Queries, cfg *config.Config) *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	requiredHoursHandler := handler.NewRequiredHoursHandler(q)
+	requiredHoursHandler := handler.NewRequiredHourHandler(rhSvc)
 
 	v1 := r.Group("/api/v1")
 	{

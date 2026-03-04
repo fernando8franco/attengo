@@ -7,6 +7,7 @@ import (
 	"github.com/fernando8franco/attengo/internal/db"
 	"github.com/fernando8franco/attengo/internal/repository"
 	"github.com/fernando8franco/attengo/internal/routes"
+	"github.com/fernando8franco/attengo/internal/service"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -19,8 +20,10 @@ func main() {
 	}
 	defer conn.Close()
 
-	queries := repository.New(conn)
-	router := routes.SetupRouter(*queries, cfg)
+	rhRepo := repository.NewRequiredHourRepository(conn)
+	rhSvc := service.NewRequiredHourService(rhRepo)
+
+	router := routes.SetupRouter(rhSvc, cfg)
 
 	log.Printf("Server starting on %s", cfg.Port)
 	if err := router.Run(cfg.Port); err != nil {
