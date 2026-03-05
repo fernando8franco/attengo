@@ -5,7 +5,6 @@ import (
 
 	"github.com/fernando8franco/attengo/internal/config"
 	"github.com/fernando8franco/attengo/internal/db"
-	"github.com/fernando8franco/attengo/internal/repository"
 	"github.com/fernando8franco/attengo/internal/routes"
 	"github.com/fernando8franco/attengo/internal/service"
 	_ "github.com/mattn/go-sqlite3"
@@ -20,8 +19,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	rhRepo := repository.NewRequiredHourRepository(conn)
-	rhSvc := service.NewRequiredHourService(rhRepo)
+	rhSvc := service.NewRequiredHourService(conn)
 
 	router := routes.SetupRouter(rhSvc, cfg)
 
