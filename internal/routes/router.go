@@ -1,13 +1,15 @@
 package routes
 
 import (
+	"database/sql"
+
 	"github.com/fernando8franco/attengo/internal/config"
 	"github.com/fernando8franco/attengo/internal/handler"
 	"github.com/fernando8franco/attengo/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(rhSvc service.RequiredHourService, cfg *config.Config) *gin.Engine {
+func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -16,7 +18,10 @@ func SetupRouter(rhSvc service.RequiredHourService, cfg *config.Config) *gin.Eng
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
+	rhSvc := service.NewRequiredHourService(conn)
+	uSvc := service.NewUserService(conn)
 	requiredHoursHandler := handler.NewRequiredHourHandler(rhSvc)
+	userHandler := handler.NewUserHandler(uSvc)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -24,6 +29,15 @@ func SetupRouter(rhSvc service.RequiredHourService, cfg *config.Config) *gin.Eng
 		{
 			requiredHours.POST("", requiredHoursHandler.CreateRequiredHours)
 		}
+
+		users := v1.Group("/users")
+		{
+			users.POST("", userHandler.CreateUser)
+		}
+	}
+
+	if cfg.Env == "development" {
+		r.POST("/reset", handler.Reset(conn))
 	}
 
 	return r

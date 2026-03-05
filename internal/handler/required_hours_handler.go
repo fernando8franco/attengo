@@ -27,11 +27,10 @@ func (h *RequiredHoursHandler) CreateRequiredHours(c *gin.Context) {
 		return
 	}
 
-	rh, err := h.requiredHourService.CreateRequiredHour(c.Request.Context(), service.CreateRequiredHourInput{
+	rh, err := h.requiredHourService.CreateRequiredHour(c.Request.Context(), service.RequiredHourInput{
 		Type:         req.Type,
 		TotalMinutes: req.Minutes,
 	})
-
 	if err != nil {
 		respondError(c, err)
 		return
