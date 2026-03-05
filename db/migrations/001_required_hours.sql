@@ -2,7 +2,7 @@
 CREATE TABLE required_hours (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT NOT NULL UNIQUE,
-    minutes INTEGER NOT NULL,
+    total_minutes INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP

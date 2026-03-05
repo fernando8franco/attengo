@@ -1,13 +1,10 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/fernando8franco/attengo/internal/service"
 	"github.com/gin-gonic/gin"
-
-	"github.com/mattn/go-sqlite3"
 )
 
 type RequiredHoursHandler struct {
@@ -30,25 +27,15 @@ func (h *RequiredHoursHandler) CreateRequiredHours(c *gin.Context) {
 		return
 	}
 
-	rh, err := h.requiredHourService.CreateRequiredHour(c.Request.Context(), service.CrateRequiredHourInput{
-		Type:    req.Type,
-		Minutes: req.Minutes,
+	rh, err := h.requiredHourService.CreateRequiredHour(c.Request.Context(), service.CreateRequiredHourInput{
+		Type:         req.Type,
+		TotalMinutes: req.Minutes,
 	})
 
 	if err != nil {
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) {
-			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "This record already exists"})
-				return
-			}
-
-			c.JSON(http.StatusInternalServerError, gin.H{"error": sqliteErr.ExtendedCode})
-			return
-		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, err)
 		return
 	}
+
 	c.JSON(http.StatusCreated, rh)
 }
