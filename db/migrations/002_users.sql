@@ -5,6 +5,9 @@ CREATE TABLE users (
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL UNIQUE,
     required_hour_id INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP,
     CONSTRAINT fk_required_hour
         FOREIGN KEY (required_hour_id)
         REFERENCES required_hours(id)

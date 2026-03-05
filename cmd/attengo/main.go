@@ -6,7 +6,6 @@ import (
 	"github.com/fernando8franco/attengo/internal/config"
 	"github.com/fernando8franco/attengo/internal/db"
 	"github.com/fernando8franco/attengo/internal/routes"
-	"github.com/fernando8franco/attengo/internal/service"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -19,9 +18,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	rhSvc := service.NewRequiredHourService(conn)
-
-	router := routes.SetupRouter(rhSvc, cfg)
+	router := routes.SetupRouter(conn, cfg)
 
 	log.Printf("Server starting on %s", cfg.Port)
 	if err := router.Run(cfg.Port); err != nil {

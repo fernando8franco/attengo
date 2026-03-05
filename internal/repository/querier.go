@@ -9,7 +9,9 @@ import (
 )
 
 type Querier interface {
-	CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (RequiredHour, error)
+	CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (CreateRequiredHoursRow, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	DeleteRequiredHours(ctx context.Context) error
 }
 
 var _ Querier = (*Queries)(nil)

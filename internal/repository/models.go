@@ -19,9 +19,12 @@ type RequiredHour struct {
 }
 
 type User struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	Password       string `json:"password"`
-	RequiredHourID int64  `json:"required_hour_id"`
+	ID             string       `json:"id"`
+	Name           string       `json:"name"`
+	Email          string       `json:"email"`
+	Password       string       `json:"password"`
+	RequiredHourID int64        `json:"required_hour_id"`
+	CreatedAt      time.Time    `json:"created_at"`
+	UpdatedAt      time.Time    `json:"updated_at"`
+	DeletedAt      sql.NullTime `json:"deleted_at"`
 }

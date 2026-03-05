@@ -12,7 +12,10 @@ import (
 const createRequiredHours = `-- name: CreateRequiredHours :one
 INSERT INTO required_hours (type, total_minutes, created_at, updated_at) 
 VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-RETURNING id, type, total_minutes, created_at, updated_at, deleted_at
+RETURNING 
+id,
+type,
+total_minutes
 `
 
 type CreateRequiredHoursParams struct {
@@ -20,16 +23,24 @@ type CreateRequiredHoursParams struct {
 	TotalMinutes int64  `json:"total_minutes"`
 }
 
-func (q *Queries) CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (RequiredHour, error) {
+type CreateRequiredHoursRow struct {
+	ID           int64  `json:"id"`
+	Type         string `json:"type"`
+	TotalMinutes int64  `json:"total_minutes"`
+}
+
+func (q *Queries) CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (CreateRequiredHoursRow, error) {
 	row := q.db.QueryRowContext(ctx, createRequiredHours, arg.Type, arg.TotalMinutes)
-	var i RequiredHour
-	err := row.Scan(
-		&i.ID,
-		&i.Type,
-		&i.TotalMinutes,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
+	var i CreateRequiredHoursRow
+	err := row.Scan(&i.ID, &i.Type, &i.TotalMinutes)
 	return i, err
+}
+
+const deleteRequiredHours = `-- name: DeleteRequiredHours :exec
+DELETE FROM required_hours
+`
+
+func (q *Queries) DeleteRequiredHours(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteRequiredHours)
+	return err
 }
