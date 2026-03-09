@@ -9,9 +9,12 @@ import (
 )
 
 type Querier interface {
+	CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error)
 	CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (CreateRequiredHoursRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteRequiredHours(ctx context.Context) error
+	GetIDFromLastEntryLogByUser(ctx context.Context, userID string) (string, error)
+	UpdateEntryLog(ctx context.Context, id string) (UpdateEntryLogRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

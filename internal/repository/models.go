@@ -6,25 +6,38 @@ package repository
 
 import (
 	"database/sql"
-	"time"
 )
 
+type AssistanceLog struct {
+	ID                string         `json:"id"`
+	LogDescription    string         `json:"log_description"`
+	LogDate           string         `json:"log_date"`
+	EntryTime         sql.NullString `json:"entry_time"`
+	ExitTime          sql.NullString `json:"exit_time"`
+	ManualMinutes     int64          `json:"manual_minutes"`
+	TotalDailyMinutes sql.NullInt64  `json:"total_daily_minutes"`
+	UserID            string         `json:"user_id"`
+	CreatedAt         string         `json:"created_at"`
+	UpdatedAt         string         `json:"updated_at"`
+	DeletedAt         sql.NullString `json:"deleted_at"`
+}
+
 type RequiredHour struct {
-	ID           int64        `json:"id"`
-	Type         string       `json:"type"`
-	TotalMinutes int64        `json:"total_minutes"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	DeletedAt    sql.NullTime `json:"deleted_at"`
+	ID           int64          `json:"id"`
+	Type         string         `json:"type"`
+	TotalMinutes int64          `json:"total_minutes"`
+	CreatedAt    string         `json:"created_at"`
+	UpdatedAt    string         `json:"updated_at"`
+	DeletedAt    sql.NullString `json:"deleted_at"`
 }
 
 type User struct {
-	ID             string       `json:"id"`
-	Name           string       `json:"name"`
-	Email          string       `json:"email"`
-	Password       string       `json:"password"`
-	RequiredHourID int64        `json:"required_hour_id"`
-	CreatedAt      time.Time    `json:"created_at"`
-	UpdatedAt      time.Time    `json:"updated_at"`
-	DeletedAt      sql.NullTime `json:"deleted_at"`
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	Email          string         `json:"email"`
+	Password       string         `json:"password"`
+	RequiredHourID int64          `json:"required_hour_id"`
+	CreatedAt      string         `json:"created_at"`
+	UpdatedAt      string         `json:"updated_at"`
+	DeletedAt      sql.NullString `json:"deleted_at"`
 }
