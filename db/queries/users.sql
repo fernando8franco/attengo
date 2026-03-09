@@ -1,6 +1,6 @@
 -- name: CreateUser :one
-INSERT INTO users (id, name, email, password, required_hour_id, created_at, updated_at) 
-VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO users (id, name, email, password, required_hour_id) 
+VALUES (?, ?, ?, ?, ?)
 RETURNING 
 id,
 name,
