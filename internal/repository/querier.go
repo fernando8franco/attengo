@@ -13,8 +13,9 @@ type Querier interface {
 	CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (CreateRequiredHoursRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteRequiredHours(ctx context.Context) error
-	GetIDFromLastEntryLogByUser(ctx context.Context, userID string) (string, error)
-	UpdateEntryLog(ctx context.Context, id string) (UpdateEntryLogRow, error)
+	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
+	UpdateExitLog(ctx context.Context, id string) (UpdateExitLogRow, error)
+	ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

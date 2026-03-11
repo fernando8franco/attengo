@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/fernando8franco/attengo/internal/apperr"
@@ -12,6 +11,7 @@ import (
 
 func respondError(c *gin.Context, err error) {
 	var notFound *apperr.NotFoundError
+	var unauthorized *apperr.UnauthorizedError
 	var sqliteErr sqlite3.Error
 
 	switch {
@@ -19,8 +19,10 @@ func respondError(c *gin.Context, err error) {
 		c.JSON(http.StatusNotFound, gin.H{"error": notFound.Error()})
 	case errors.As(err, &sqliteErr):
 		c.JSON(http.StatusConflict, gin.H{"error": sqliteErr.Error()})
+	case errors.As(err, &unauthorized):
+		c.JSON(http.StatusUnauthorized, gin.H{"error": unauthorized.Error()})
 	default:
-		log.Printf("unexpected error: %v", err)
+		// log.Printf("unexpected error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 	}
 }

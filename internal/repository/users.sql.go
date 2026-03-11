@@ -57,3 +57,21 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	)
 	return i, err
 }
+
+const validateUserPassword = `-- name: ValidateUserPassword :one
+SELECT COUNT(1) > 0
+FROM users
+WHERE id = ? AND password = ?
+`
+
+type ValidateUserPasswordParams struct {
+	ID       string `json:"id"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, validateUserPassword, arg.ID, arg.Password)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}

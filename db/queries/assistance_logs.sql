@@ -4,25 +4,33 @@ VALUES (?, ?, ?)
 RETURNING 
 id,
 entry_time,
-exit_time,
-total_daily_minutes,
 user_id;
 
--- name: GetIDFromLastEntryLogByUser :one
-SELECT id
+-- name: GetLastEntryLogByUser :one
+SELECT id, log_date
 FROM assistance_logs
 WHERE user_id = ?
 AND exit_time IS NULL
 ORDER BY log_date DESC
 LIMIT 1;
 
--- name: UpdateEntryLog :one
+-- name: UpdateExitLog :one
 UPDATE assistance_logs 
 SET exit_time = CURRENT_TIME
-WHERE id = ?
-RETURNING
-id,
-entry_time,
-exit_time,
-total_daily_minutes,
-user_id;
+WHERE assistance_logs.id = ?
+RETURNING 
+assistance_logs.id,
+assistance_logs.entry_time,
+assistance_logs.exit_time,
+assistance_logs.user_id,
+(
+    SELECT rh.total_minutes AS required_total
+    FROM users u 
+    JOIN required_hours rh ON u.required_hour_id = rh.id 
+    WHERE u.id = assistance_logs.user_id
+),
+(
+    SELECT CAST(SUM(total_daily_minutes) AS BIGINT) AS total_accumulated
+    FROM assistance_logs al 
+    WHERE al.user_id = assistance_logs.user_id
+);
