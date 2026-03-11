@@ -16,8 +16,6 @@ VALUES (?, ?, ?)
 RETURNING 
 id,
 entry_time,
-exit_time,
-total_daily_minutes,
 user_id
 `
 
@@ -28,70 +26,80 @@ type CreateEntryLogParams struct {
 }
 
 type CreateEntryLogRow struct {
-	ID                string         `json:"id"`
-	EntryTime         sql.NullString `json:"entry_time"`
-	ExitTime          sql.NullString `json:"exit_time"`
-	TotalDailyMinutes sql.NullInt64  `json:"total_daily_minutes"`
-	UserID            string         `json:"user_id"`
+	ID        string         `json:"id"`
+	EntryTime sql.NullString `json:"entry_time"`
+	UserID    string         `json:"user_id"`
 }
 
 func (q *Queries) CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error) {
 	row := q.db.QueryRowContext(ctx, createEntryLog, arg.ID, arg.LogDescription, arg.UserID)
 	var i CreateEntryLogRow
-	err := row.Scan(
-		&i.ID,
-		&i.EntryTime,
-		&i.ExitTime,
-		&i.TotalDailyMinutes,
-		&i.UserID,
-	)
+	err := row.Scan(&i.ID, &i.EntryTime, &i.UserID)
 	return i, err
 }
 
-const getIDFromLastEntryLogByUser = `-- name: GetIDFromLastEntryLogByUser :one
-SELECT id
+const getLastEntryLogByUser = `-- name: GetLastEntryLogByUser :one
+SELECT id, log_date
 FROM assistance_logs
 WHERE user_id = ?
+AND exit_time IS NULL
 ORDER BY log_date DESC
 LIMIT 1
 `
 
-func (q *Queries) GetIDFromLastEntryLogByUser(ctx context.Context, userID string) (string, error) {
-	row := q.db.QueryRowContext(ctx, getIDFromLastEntryLogByUser, userID)
-	var id string
-	err := row.Scan(&id)
-	return id, err
+type GetLastEntryLogByUserRow struct {
+	ID      string `json:"id"`
+	LogDate string `json:"log_date"`
 }
 
-const updateEntryLog = `-- name: UpdateEntryLog :one
+func (q *Queries) GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getLastEntryLogByUser, userID)
+	var i GetLastEntryLogByUserRow
+	err := row.Scan(&i.ID, &i.LogDate)
+	return i, err
+}
+
+const updateExitLog = `-- name: UpdateExitLog :one
 UPDATE assistance_logs 
 SET exit_time = CURRENT_TIME
-WHERE id = ?
-RETURNING
-id,
-entry_time,
-exit_time,
-total_daily_minutes,
-user_id
+WHERE assistance_logs.id = ?
+RETURNING 
+assistance_logs.id,
+assistance_logs.entry_time,
+assistance_logs.exit_time,
+assistance_logs.user_id,
+(
+    SELECT rh.total_minutes AS required_total
+    FROM users u 
+    JOIN required_hours rh ON u.required_hour_id = rh.id 
+    WHERE u.id = assistance_logs.user_id
+),
+(
+    SELECT CAST(SUM(total_daily_minutes) AS BIGINT) AS total_accumulated
+    FROM assistance_logs al 
+    WHERE al.user_id = assistance_logs.user_id
+)
 `
 
-type UpdateEntryLogRow struct {
-	ID                string         `json:"id"`
-	EntryTime         sql.NullString `json:"entry_time"`
-	ExitTime          sql.NullString `json:"exit_time"`
-	TotalDailyMinutes sql.NullInt64  `json:"total_daily_minutes"`
-	UserID            string         `json:"user_id"`
+type UpdateExitLogRow struct {
+	ID               string         `json:"id"`
+	EntryTime        sql.NullString `json:"entry_time"`
+	ExitTime         sql.NullString `json:"exit_time"`
+	UserID           string         `json:"user_id"`
+	RequiredTotal    int64          `json:"required_total"`
+	TotalAccumulated int64          `json:"total_accumulated"`
 }
 
-func (q *Queries) UpdateEntryLog(ctx context.Context, id string) (UpdateEntryLogRow, error) {
-	row := q.db.QueryRowContext(ctx, updateEntryLog, id)
-	var i UpdateEntryLogRow
+func (q *Queries) UpdateExitLog(ctx context.Context, id string) (UpdateExitLogRow, error) {
+	row := q.db.QueryRowContext(ctx, updateExitLog, id)
+	var i UpdateExitLogRow
 	err := row.Scan(
 		&i.ID,
 		&i.EntryTime,
 		&i.ExitTime,
-		&i.TotalDailyMinutes,
 		&i.UserID,
+		&i.RequiredTotal,
+		&i.TotalAccumulated,
 	)
 	return i, err
 }
