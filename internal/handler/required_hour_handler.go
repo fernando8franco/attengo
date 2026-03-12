@@ -3,27 +3,28 @@ package handler
 import (
 	"net/http"
 
+	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-type RequiredHoursHandler struct {
+type RequiredHourHandler struct {
 	requiredHourService service.RequiredHourService
 }
 
-func NewRequiredHourHandler(svc service.RequiredHourService) *RequiredHoursHandler {
-	return &RequiredHoursHandler{requiredHourService: svc}
+func NewRequiredHourHandler(svc service.RequiredHourService) *RequiredHourHandler {
+	return &RequiredHourHandler{requiredHourService: svc}
 }
 
-type CreateRequiredHoursRequest struct {
+type CreateRequiredHourRequest struct {
 	Type    string `json:"type"  binding:"required"`
 	Minutes int    `json:"minutes"  binding:"required"`
 }
 
-func (h *RequiredHoursHandler) CreateRequiredHours(c *gin.Context) {
-	var req CreateRequiredHoursRequest
+func (h *RequiredHourHandler) CreateRequiredHour(c *gin.Context) {
+	var req CreateRequiredHourRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
+		c.Error(apperr.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -32,7 +33,7 @@ func (h *RequiredHoursHandler) CreateRequiredHours(c *gin.Context) {
 		TotalMinutes: req.Minutes,
 	})
 	if err != nil {
-		respondError(c, err)
+		c.Error(err)
 		return
 	}
 

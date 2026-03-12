@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -36,14 +35,17 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 	password := passwordGenetator(5)
 
 	row, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
-		ID:             uuid.New().String(),
-		Name:           input.Name,
-		Email:          input.Email,
-		Password:       password,
-		RequiredHourID: int64(input.RequiredHourID),
+		ID:       uuid.New().String(),
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: password,
+		RequiredHourID: sql.NullInt64{
+			Int64: int64(input.RequiredHourID),
+			Valid: true,
+		},
 	})
 	if err != nil {
-		return repository.CreateUserRow{}, fmt.Errorf("create user: %w", err)
+		return repository.CreateUserRow{}, err
 	}
 
 	return row, nil

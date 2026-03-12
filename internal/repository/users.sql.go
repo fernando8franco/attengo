@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -17,25 +18,25 @@ id,
 name,
 email,
 password,
-(SELECT type FROM required_hours WHERE id = users.required_hour_id) AS required_hour_type,
-(SELECT total_minutes FROM required_hours WHERE id = users.required_hour_id) AS required_hour_minutes
+(SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id),
+(SELECT total_minutes AS required_hour_minutes FROM required_hours WHERE id = users.required_hour_id)
 `
 
 type CreateUserParams struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	Password       string `json:"password"`
-	RequiredHourID int64  `json:"required_hour_id"`
+	ID             string        `json:"id"`
+	Name           string        `json:"name"`
+	Email          string        `json:"email"`
+	Password       string        `json:"password"`
+	RequiredHourID sql.NullInt64 `json:"required_hour_id"`
 }
 
 type CreateUserRow struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	Password     string `json:"password"`
-	Type         string `json:"type"`
-	TotalMinutes int64  `json:"total_minutes"`
+	ID                  string `json:"id"`
+	Name                string `json:"name"`
+	Email               string `json:"email"`
+	Password            string `json:"password"`
+	RequiredHourType    string `json:"required_hour_type"`
+	RequiredHourMinutes int64  `json:"required_hour_minutes"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
@@ -52,8 +53,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.Type,
-		&i.TotalMinutes,
+		&i.RequiredHourType,
+		&i.RequiredHourMinutes,
 	)
 	return i, err
 }

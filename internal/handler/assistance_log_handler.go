@@ -34,10 +34,7 @@ func (h *AssistanceLogHandler) TakeAttendance(c *gin.Context) {
 			for i, fe := range ve {
 				out[i] = fmt.Sprintf("field '%s' %s", fe.Field(), fe.Tag())
 			}
-			c.Error(&apperr.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(out, " "),
-			})
+			c.Error(apperr.NewBadRequest(strings.Join(out, " ")))
 			return
 		}
 		c.Error(apperr.NewBadRequest(err.Error()))

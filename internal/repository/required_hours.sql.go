@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const createRequiredHours = `-- name: CreateRequiredHours :one
+const createRequiredHour = `-- name: CreateRequiredHour :one
 INSERT INTO required_hours (type, total_minutes) 
 VALUES (?, ?)
 RETURNING 
@@ -18,20 +18,20 @@ type,
 total_minutes
 `
 
-type CreateRequiredHoursParams struct {
+type CreateRequiredHourParams struct {
 	Type         string `json:"type"`
 	TotalMinutes int64  `json:"total_minutes"`
 }
 
-type CreateRequiredHoursRow struct {
+type CreateRequiredHourRow struct {
 	ID           int64  `json:"id"`
 	Type         string `json:"type"`
 	TotalMinutes int64  `json:"total_minutes"`
 }
 
-func (q *Queries) CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (CreateRequiredHoursRow, error) {
-	row := q.db.QueryRowContext(ctx, createRequiredHours, arg.Type, arg.TotalMinutes)
-	var i CreateRequiredHoursRow
+func (q *Queries) CreateRequiredHour(ctx context.Context, arg CreateRequiredHourParams) (CreateRequiredHourRow, error) {
+	row := q.db.QueryRowContext(ctx, createRequiredHour, arg.Type, arg.TotalMinutes)
+	var i CreateRequiredHourRow
 	err := row.Scan(&i.ID, &i.Type, &i.TotalMinutes)
 	return i, err
 }

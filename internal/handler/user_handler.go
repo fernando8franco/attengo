@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -24,17 +25,17 @@ type CreateUserRequest struct {
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
+		c.Error(apperr.NewBadRequest(err.Error()))
 		return
 	}
 
 	u, err := h.UserService.CreateUser(c.Request.Context(), service.CreateUserInput{
-		Name:           req.Email,
+		Name:           req.Name,
 		Email:          req.Email,
 		RequiredHourID: req.RequiredHourID,
 	})
 	if err != nil {
-		respondError(c, err)
+		c.Error(err)
 		return
 	}
 

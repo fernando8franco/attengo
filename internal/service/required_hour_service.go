@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/fernando8franco/attengo/internal/repository"
@@ -15,7 +14,7 @@ type RequiredHourInput struct {
 }
 
 type RequiredHourService interface {
-	CreateRequiredHour(ctx context.Context, input RequiredHourInput) (repository.CreateRequiredHoursRow, error)
+	CreateRequiredHour(ctx context.Context, input RequiredHourInput) (repository.CreateRequiredHourRow, error)
 }
 
 type requiredHourService struct {
@@ -26,15 +25,15 @@ func NewRequiredHourService(db *sql.DB) RequiredHourService {
 	return &requiredHourService{queries: repository.New(db)}
 }
 
-func (s *requiredHourService) CreateRequiredHour(ctx context.Context, input RequiredHourInput) (repository.CreateRequiredHoursRow, error) {
+func (s *requiredHourService) CreateRequiredHour(ctx context.Context, input RequiredHourInput) (repository.CreateRequiredHourRow, error) {
 	input.Type = strings.TrimSpace(input.Type)
 
-	row, err := s.queries.CreateRequiredHours(ctx, repository.CreateRequiredHoursParams{
+	row, err := s.queries.CreateRequiredHour(ctx, repository.CreateRequiredHourParams{
 		Type:         input.Type,
 		TotalMinutes: int64(input.TotalMinutes),
 	})
 	if err != nil {
-		return repository.CreateRequiredHoursRow{}, fmt.Errorf("create user: %w", err)
+		return repository.CreateRequiredHourRow{}, err
 	}
 
 	return row, nil

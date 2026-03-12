@@ -1,4 +1,4 @@
--- name: CreateRequiredHours :one
+-- name: CreateRequiredHour :one
 INSERT INTO required_hours (type, total_minutes) 
 VALUES (?, ?)
 RETURNING 
