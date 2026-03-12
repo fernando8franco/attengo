@@ -41,6 +41,9 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	rhSvc := service.NewRequiredHourService(conn)
 	requiredHoursHandler := handler.NewRequiredHourHandler(rhSvc)
 
+	pSvc := service.NewPeriodService(conn)
+	periodHandler := handler.NewPeriodHandler(pSvc)
+
 	uSvc := service.NewUserService(conn)
 	userHandler := handler.NewUserHandler(uSvc)
 
@@ -51,7 +54,12 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	{
 		requiredHours := v1.Group("/required_hours")
 		{
-			requiredHours.POST("", requiredHoursHandler.CreateRequiredHours)
+			requiredHours.POST("", requiredHoursHandler.CreateRequiredHour)
+		}
+
+		periods := v1.Group("/periods")
+		{
+			periods.POST("", periodHandler.CreatePeriod)
 		}
 
 		users := v1.Group("/users")

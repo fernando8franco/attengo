@@ -22,6 +22,16 @@ type AssistanceLog struct {
 	DeletedAt         sql.NullString `json:"deleted_at"`
 }
 
+type Period struct {
+	ID        int64          `json:"id"`
+	Name      string         `json:"name"`
+	EntryDate string         `json:"entry_date"`
+	ExitDate  string         `json:"exit_date"`
+	CreatedAt string         `json:"created_at"`
+	UpdatedAt string         `json:"updated_at"`
+	DeletedAt sql.NullString `json:"deleted_at"`
+}
+
 type RequiredHour struct {
 	ID           int64          `json:"id"`
 	Type         string         `json:"type"`
@@ -33,10 +43,12 @@ type RequiredHour struct {
 
 type User struct {
 	ID             string         `json:"id"`
+	IsAdmin        int64          `json:"is_admin"`
 	Name           string         `json:"name"`
 	Email          string         `json:"email"`
 	Password       string         `json:"password"`
-	RequiredHourID int64          `json:"required_hour_id"`
+	RequiredHourID sql.NullInt64  `json:"required_hour_id"`
+	PeriodID       sql.NullString `json:"period_id"`
 	CreatedAt      string         `json:"created_at"`
 	UpdatedAt      string         `json:"updated_at"`
 	DeletedAt      sql.NullString `json:"deleted_at"`

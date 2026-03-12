@@ -15,6 +15,13 @@ func Reset(db *sql.DB) gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": "Failed to reset database"})
 			return
 		}
+
+		err = q.DeletePeriods(c.Request.Context())
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to reset database"})
+			return
+		}
+
 		c.JSON(200, gin.H{"message": "Database reset successfully"})
 	}
 }

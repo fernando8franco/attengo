@@ -10,8 +10,10 @@ import (
 
 type Querier interface {
 	CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error)
-	CreateRequiredHours(ctx context.Context, arg CreateRequiredHoursParams) (CreateRequiredHoursRow, error)
+	CreatePeriod(ctx context.Context, arg CreatePeriodParams) (CreatePeriodRow, error)
+	CreateRequiredHour(ctx context.Context, arg CreateRequiredHourParams) (CreateRequiredHourRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
 	UpdateExitLog(ctx context.Context, id string) (UpdateExitLogRow, error)

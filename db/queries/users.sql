@@ -6,8 +6,8 @@ id,
 name,
 email,
 password,
-(SELECT type FROM required_hours WHERE id = users.required_hour_id) AS required_hour_type,
-(SELECT total_minutes FROM required_hours WHERE id = users.required_hour_id) AS required_hour_minutes;
+(SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id),
+(SELECT total_minutes AS required_hour_minutes FROM required_hours WHERE id = users.required_hour_id);
 
 -- name: ValidateUserPassword :one
 SELECT COUNT(1) > 0
