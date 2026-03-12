@@ -4,7 +4,7 @@ CREATE TABLE users (
     is_admin INTEGER NOT NULL DEFAULT 0,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
-    password TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL DEFAULT 'unset',
     required_hour_id INTEGER,
     period_id TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -18,7 +18,7 @@ CREATE TABLE users (
         FOREIGN KEY (period_id)
         REFERENCES periods(id)
         ON DELETE CASCADE,
-    CONSTRAINT uc_email_required_hour_id UNIQUE (email, required_hour_id)
+    CONSTRAINT uc_email_required_hour_id UNIQUE (email, required_hour_id, period_id)
 );
 
 -- +goose Down
