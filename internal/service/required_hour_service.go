@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/repository"
 )
 
@@ -33,6 +34,9 @@ func (s *requiredHourService) CreateRequiredHour(ctx context.Context, input Requ
 		TotalMinutes: int64(input.TotalMinutes),
 	})
 	if err != nil {
+		if IsUniqueConstraintError(err) {
+			err = apperr.NewBadRequest(err.Error())
+		}
 		return repository.CreateRequiredHourRow{}, err
 	}
 
