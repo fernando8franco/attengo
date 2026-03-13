@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/repository"
 	"github.com/google/uuid"
 )
@@ -15,6 +16,7 @@ type CreateUserInput struct {
 	Name           string
 	Email          string
 	RequiredHourID int
+	PeriodID       int
 }
 
 type UserService interface {
@@ -43,8 +45,15 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 			Int64: int64(input.RequiredHourID),
 			Valid: true,
 		},
+		PeriodID: sql.NullInt64{
+			Int64: int64(input.PeriodID),
+			Valid: true,
+		},
 	})
 	if err != nil {
+		if IsUniqueConstraintError(err) {
+			err = apperr.NewBadRequest(err.Error())
+		}
 		return repository.CreateUserRow{}, err
 	}
 

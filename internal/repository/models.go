@@ -48,7 +48,7 @@ type User struct {
 	Email          string         `json:"email"`
 	Password       string         `json:"password"`
 	RequiredHourID sql.NullInt64  `json:"required_hour_id"`
-	PeriodID       sql.NullString `json:"period_id"`
+	PeriodID       sql.NullInt64  `json:"period_id"`
 	CreatedAt      string         `json:"created_at"`
 	UpdatedAt      string         `json:"updated_at"`
 	DeletedAt      sql.NullString `json:"deleted_at"`
