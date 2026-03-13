@@ -19,7 +19,8 @@ func NewUserHandler(svc service.UserService) *UserHandler {
 type CreateUserRequest struct {
 	Name           string `json:"name"  binding:"required"`
 	Email          string `json:"email"  binding:"required,email"`
-	RequiredHourID int    `json:"required_hour_id"  binding:"required"`
+	RequiredHourID int    `json:"required_hour_id"  binding:"required,numeric"`
+	PeriodID       int    `json:"period_id"  binding:"required,numeric"`
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
@@ -33,6 +34,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		Name:           req.Name,
 		Email:          req.Email,
 		RequiredHourID: req.RequiredHourID,
+		PeriodID:       req.PeriodID,
 	})
 	if err != nil {
 		c.Error(err)
