@@ -1,10 +1,21 @@
 -- name: CreateEntryLog :one
-INSERT INTO assistance_logs (id, log_description, user_id) 
-VALUES (?, ?, ?)
+INSERT INTO assistance_logs (log_description, user_id) 
+VALUES (?, ?)
 RETURNING 
-id,
-entry_time,
-user_id;
+assistance_logs.id,
+assistance_logs.entry_time,
+assistance_logs.user_id,
+(
+    SELECT rh.total_minutes AS required_total
+    FROM users u 
+    JOIN required_hours rh ON u.required_hour_id = rh.id 
+    WHERE u.id = assistance_logs.user_id
+),
+(
+    SELECT CAST(SUM(total_daily_minutes) AS BIGINT) AS total_accumulated
+    FROM assistance_logs al 
+    WHERE al.user_id = assistance_logs.user_id
+);
 
 -- name: GetLastEntryLogByUser :one
 SELECT id, log_date

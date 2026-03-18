@@ -9,7 +9,10 @@ import (
 
 	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/repository"
-	"github.com/google/uuid"
+)
+
+const (
+	passwordLenght = 5
 )
 
 type CreateUserInput struct {
@@ -34,10 +37,9 @@ func NewUserService(db *sql.DB) UserService {
 func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.Email = strings.TrimSpace(input.Email)
-	password := passwordGenetator(5)
+	password := passwordGenetator(passwordLenght)
 
 	row, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
-		ID:       uuid.New().String(),
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: password,

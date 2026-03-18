@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE assistance_logs (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     log_description TEXT NOT NULL,
     log_date TEXT NOT NULL DEFAULT CURRENT_DATE,
     entry_time TEXT DEFAULT CURRENT_TIME,
@@ -12,7 +12,7 @@ CREATE TABLE assistance_logs (
             0
         )
     ) VIRTUAL,
-    user_id TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TEXT,

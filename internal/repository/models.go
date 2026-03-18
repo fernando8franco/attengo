@@ -9,14 +9,14 @@ import (
 )
 
 type AssistanceLog struct {
-	ID                string         `json:"id"`
+	ID                int64          `json:"id"`
 	LogDescription    string         `json:"log_description"`
 	LogDate           string         `json:"log_date"`
 	EntryTime         sql.NullString `json:"entry_time"`
 	ExitTime          sql.NullString `json:"exit_time"`
 	ManualMinutes     int64          `json:"manual_minutes"`
 	TotalDailyMinutes sql.NullInt64  `json:"total_daily_minutes"`
-	UserID            string         `json:"user_id"`
+	UserID            int64          `json:"user_id"`
 	CreatedAt         string         `json:"created_at"`
 	UpdatedAt         string         `json:"updated_at"`
 	DeletedAt         sql.NullString `json:"deleted_at"`
@@ -42,7 +42,7 @@ type RequiredHour struct {
 }
 
 type User struct {
-	ID             string         `json:"id"`
+	ID             int64          `json:"id"`
 	IsAdmin        int64          `json:"is_admin"`
 	Name           string         `json:"name"`
 	Email          string         `json:"email"`

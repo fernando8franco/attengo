@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE users (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     is_admin INTEGER NOT NULL DEFAULT 0,
     name TEXT NOT NULL,
     email TEXT NOT NULL,

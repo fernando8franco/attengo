@@ -15,8 +15,8 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
-	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
-	UpdateExitLog(ctx context.Context, id string) (UpdateExitLogRow, error)
+	GetLastEntryLogByUser(ctx context.Context, userID int64) (GetLastEntryLogByUserRow, error)
+	UpdateExitLog(ctx context.Context, id int64) (UpdateExitLogRow, error)
 	ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error)
 }
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/repository"
-	"github.com/google/uuid"
 )
 
 const (
@@ -16,7 +15,7 @@ const (
 )
 
 type AssistanceLogInput struct {
-	UserID       string
+	UserID       int
 	UserPassword string
 }
 
@@ -33,49 +32,46 @@ func NewAssistanceLogService(db *sql.DB) AssistanceLogService {
 }
 
 type AttendaceDTO struct {
-	ID               string `json:"id"`
+	ID               int    `json:"id"`
 	EntryTime        string `json:"entry_time"`
 	ExitTime         string `json:"exit_time"`
 	RequiredTotal    int    `json:"required_total"`
 	TotalAccumulated int    `json:"total_accumulated"`
-	UserID           string `json:"user_id"`
+	UserID           int    `json:"user_id"`
 }
 
 func (s *assistanceLogService) TakeAttendance(ctx context.Context, input AssistanceLogInput) (AttendaceDTO, error) {
 	userPsswrd, err := s.queries.ValidateUserPassword(ctx, repository.ValidateUserPasswordParams{
-		ID:       input.UserID,
+		ID:       int64(input.UserID),
 		Password: input.UserPassword,
 	})
 	if err != nil {
 		return AttendaceDTO{}, err
 	}
 
-	// TODO VALIDATION OF THE CODE
-
 	if !userPsswrd {
 		return AttendaceDTO{}, apperr.NewUnauthorizedRequest("The user or password are incorrect")
 	}
 
-	lastEntry, err := s.queries.GetLastEntryLogByUser(ctx, input.UserID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			entryLog, err := s.queries.CreateEntryLog(ctx, repository.CreateEntryLogParams{
-				ID:             uuid.New().String(),
-				LogDescription: Assitance,
-				UserID:         input.UserID,
-			})
-			if err != nil {
-				return AttendaceDTO{}, err
-			}
-
-			return mapEntryToAttendaceDTO(entryLog), nil
-		}
-
+	lastEntry, err := s.queries.GetLastEntryLogByUser(ctx, int64(input.UserID))
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return AttendaceDTO{}, err
 	}
 
-	if time.Now().UTC().Format(time.DateOnly) != lastEntry.LogDate {
-		return AttendaceDTO{}, apperr.NewBadRequest("The date is not the same")
+	today := time.Now().UTC().Format(time.DateOnly)
+	noEntry := errors.Is(err, sql.ErrNoRows)
+	isNewDay := !noEntry && lastEntry.LogDate != today
+
+	if noEntry || isNewDay {
+		entryLog, err := s.queries.CreateEntryLog(ctx, repository.CreateEntryLogParams{
+			LogDescription: Assitance,
+			UserID:         int64(input.UserID),
+		})
+		if err != nil {
+			return AttendaceDTO{}, err
+		}
+
+		return mapEntryToAttendaceDTO(entryLog), nil
 	}
 
 	exitLog, err := s.queries.UpdateExitLog(ctx, lastEntry.ID)
@@ -88,19 +84,21 @@ func (s *assistanceLogService) TakeAttendance(ctx context.Context, input Assista
 
 func mapEntryToAttendaceDTO(entry repository.CreateEntryLogRow) AttendaceDTO {
 	return AttendaceDTO{
-		ID:        entry.ID,
-		EntryTime: entry.EntryTime.String,
-		UserID:    entry.UserID,
+		ID:               int(entry.ID),
+		EntryTime:        entry.EntryTime.String,
+		RequiredTotal:    int(entry.RequiredTotal),
+		TotalAccumulated: int(entry.TotalAccumulated),
+		UserID:           int(entry.UserID),
 	}
 }
 
 func mapExitToAttendaceDTO(exit repository.UpdateExitLogRow) AttendaceDTO {
 	return AttendaceDTO{
-		ID:               exit.ID,
+		ID:               int(exit.ID),
 		EntryTime:        exit.EntryTime.String,
 		ExitTime:         exit.ExitTime.String,
 		RequiredTotal:    int(exit.RequiredTotal),
 		TotalAccumulated: int(exit.TotalAccumulated),
-		UserID:           exit.UserID,
+		UserID:           int(exit.UserID),
 	}
 }

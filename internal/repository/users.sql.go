@@ -11,19 +11,17 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, name, email, password, required_hour_id, period_id) 
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO users (name, email, password, required_hour_id, period_id) 
+VALUES (?, ?, ?, ?, ?)
 RETURNING 
 id,
 name,
 email,
 password,
-(SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id),
-(SELECT total_minutes AS required_hour_minutes FROM required_hours WHERE id = users.required_hour_id)
+(SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id)
 `
 
 type CreateUserParams struct {
-	ID             string        `json:"id"`
 	Name           string        `json:"name"`
 	Email          string        `json:"email"`
 	Password       string        `json:"password"`
@@ -32,17 +30,15 @@ type CreateUserParams struct {
 }
 
 type CreateUserRow struct {
-	ID                  string `json:"id"`
-	Name                string `json:"name"`
-	Email               string `json:"email"`
-	Password            string `json:"password"`
-	RequiredHourType    string `json:"required_hour_type"`
-	RequiredHourMinutes int64  `json:"required_hour_minutes"`
+	ID               int64  `json:"id"`
+	Name             string `json:"name"`
+	Email            string `json:"email"`
+	Password         string `json:"password"`
+	RequiredHourType string `json:"required_hour_type"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
-		arg.ID,
 		arg.Name,
 		arg.Email,
 		arg.Password,
@@ -56,7 +52,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.Email,
 		&i.Password,
 		&i.RequiredHourType,
-		&i.RequiredHourMinutes,
 	)
 	return i, err
 }
@@ -68,7 +63,7 @@ WHERE id = ? AND password = ?
 `
 
 type ValidateUserPasswordParams struct {
-	ID       string `json:"id"`
+	ID       int64  `json:"id"`
 	Password string `json:"password"`
 }
 
