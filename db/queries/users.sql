@@ -12,3 +12,18 @@ password,
 SELECT COUNT(1) > 0
 FROM users
 WHERE is_admin = 0 AND id = ? AND password = ?;
+
+-- name: CreateAdmin :one
+INSERT INTO users (is_admin, name, email, password) 
+VALUES (1, ?, ?, ?)
+RETURNING 
+id,
+name,
+email;
+
+-- name: ExistsAdmin :one
+SELECT EXISTS (
+  SELECT 1
+  FROM users
+  WHERE is_admin = 1
+) = 1;

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fernando8franco/attengo/internal/apperr"
+	"github.com/fernando8franco/attengo/internal/auth"
 	"github.com/fernando8franco/attengo/internal/repository"
 )
 
@@ -22,8 +23,15 @@ type CreateUserInput struct {
 	PeriodID       int
 }
 
+type CreateAdminInput struct {
+	Name     string
+	Email    string
+	Password string
+}
+
 type UserService interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error)
+	SetUpAdmin(ctx context.Context, input CreateAdminInput) (repository.CreateAdminRow, error)
 }
 
 type userService struct {
@@ -60,6 +68,33 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 	}
 
 	return row, nil
+}
+
+func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (repository.CreateAdminRow, error) {
+	exists, err := s.queries.ExistsAdmin(ctx)
+	if err != nil {
+		return repository.CreateAdminRow{}, err
+	}
+
+	if exists {
+		return repository.CreateAdminRow{}, apperr.NewForbiddenRequest("an admin account has already been set up")
+	}
+
+	hashedPassword, err := auth.HashPassword(input.Password)
+	if err != nil {
+		return repository.CreateAdminRow{}, err
+	}
+
+	row, err := s.queries.CreateAdmin(ctx, repository.CreateAdminParams{
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: hashedPassword,
+	})
+	if err != nil {
+		return repository.CreateAdminRow{}, err
+	}
+
+	return row, err
 }
 
 func passwordGenetator(length int) string {

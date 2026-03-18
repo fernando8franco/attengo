@@ -67,6 +67,11 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 			users.POST("", userHandler.CreateUser)
 		}
 
+		setup := v1.Group("/setup")
+		{
+			setup.POST("/admin", userHandler.SetUpAdmin)
+		}
+
 		attendace := v1.Group("/attendace")
 		{
 			attendace.POST("", assistanceLogHandler.TakeAttendance)

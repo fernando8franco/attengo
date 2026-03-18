@@ -43,3 +43,29 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, u)
 }
+
+type SepUpAdminRequest struct {
+	Name     string `json:"name"  binding:"required"`
+	Email    string `json:"email"  binding:"required,email"`
+	Password string `json:"password"  binding:"required"`
+}
+
+func (h *UserHandler) SetUpAdmin(c *gin.Context) {
+	var req SepUpAdminRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(apperr.NewBadRequest(err.Error()))
+		return
+	}
+
+	admin, err := h.UserService.SetUpAdmin(c.Request.Context(), service.CreateAdminInput{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, admin)
+}

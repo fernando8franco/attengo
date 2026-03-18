@@ -14,6 +14,10 @@ func (e *ErrorResponse) Error() string {
 	return e.Message
 }
 
+func NewForbiddenRequest(message string) *ErrorResponse {
+	return &ErrorResponse{Code: http.StatusForbidden, Message: message}
+}
+
 func NewBadRequest(message string) *ErrorResponse {
 	return &ErrorResponse{Code: http.StatusBadRequest, Message: message}
 }

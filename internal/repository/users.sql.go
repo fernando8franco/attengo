@@ -10,6 +10,34 @@ import (
 	"database/sql"
 )
 
+const createAdmin = `-- name: CreateAdmin :one
+INSERT INTO users (is_admin, name, email, password) 
+VALUES (1, ?, ?, ?)
+RETURNING 
+id,
+name,
+email
+`
+
+type CreateAdminParams struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type CreateAdminRow struct {
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (CreateAdminRow, error) {
+	row := q.db.QueryRowContext(ctx, createAdmin, arg.Name, arg.Email, arg.Password)
+	var i CreateAdminRow
+	err := row.Scan(&i.ID, &i.Name, &i.Email)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (name, email, password, required_hour_id, period_id) 
 VALUES (?, ?, ?, ?, ?)
@@ -54,6 +82,21 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.RequiredHourType,
 	)
 	return i, err
+}
+
+const existsAdmin = `-- name: ExistsAdmin :one
+SELECT EXISTS (
+  SELECT 1
+  FROM users
+  WHERE is_admin = 1
+) = 1
+`
+
+func (q *Queries) ExistsAdmin(ctx context.Context) (bool, error) {
+	row := q.db.QueryRowContext(ctx, existsAdmin)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const validateUserPassword = `-- name: ValidateUserPassword :one

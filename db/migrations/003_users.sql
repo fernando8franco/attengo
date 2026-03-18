@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    is_admin INTEGER NOT NULL DEFAULT 0,
+    is_admin BOOLEAN NOT NULL DEFAULT 0,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     password TEXT NOT NULL,
