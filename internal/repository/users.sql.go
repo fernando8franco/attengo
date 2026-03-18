@@ -59,7 +59,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 const validateUserPassword = `-- name: ValidateUserPassword :one
 SELECT COUNT(1) > 0
 FROM users
-WHERE id = ? AND password = ?
+WHERE is_admin = 0 AND id = ? AND password = ?
 `
 
 type ValidateUserPasswordParams struct {
