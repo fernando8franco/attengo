@@ -1,6 +1,6 @@
 -- name: CreateUser :one
-INSERT INTO users (name, email, password, required_hour_id, period_id) 
-VALUES (?, ?, ?, ?, ?)
+INSERT INTO users (id, name, email, password, required_hour_id, period_id) 
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING 
 id,
 name,
@@ -14,8 +14,8 @@ FROM users
 WHERE is_admin = 0 AND id = ? AND password = ?;
 
 -- name: CreateAdmin :one
-INSERT INTO users (is_admin, name, email, password) 
-VALUES (1, ?, ?, ?)
+INSERT INTO users (id, is_admin, name, email, password) 
+VALUES (?, 1, ?, ?, ?)
 RETURNING 
 id,
 name,

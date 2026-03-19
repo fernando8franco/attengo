@@ -32,13 +32,13 @@ assistance_logs.user_id,
 
 type CreateEntryLogParams struct {
 	LogDescription string `json:"log_description"`
-	UserID         int64  `json:"user_id"`
+	UserID         string `json:"user_id"`
 }
 
 type CreateEntryLogRow struct {
 	ID               int64          `json:"id"`
 	EntryTime        sql.NullString `json:"entry_time"`
-	UserID           int64          `json:"user_id"`
+	UserID           string         `json:"user_id"`
 	RequiredTotal    int64          `json:"required_total"`
 	TotalAccumulated int64          `json:"total_accumulated"`
 }
@@ -70,7 +70,7 @@ type GetLastEntryLogByUserRow struct {
 	LogDate string `json:"log_date"`
 }
 
-func (q *Queries) GetLastEntryLogByUser(ctx context.Context, userID int64) (GetLastEntryLogByUserRow, error) {
+func (q *Queries) GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error) {
 	row := q.db.QueryRowContext(ctx, getLastEntryLogByUser, userID)
 	var i GetLastEntryLogByUserRow
 	err := row.Scan(&i.ID, &i.LogDate)
@@ -103,7 +103,7 @@ type UpdateExitLogRow struct {
 	ID               int64          `json:"id"`
 	EntryTime        sql.NullString `json:"entry_time"`
 	ExitTime         sql.NullString `json:"exit_time"`
-	UserID           int64          `json:"user_id"`
+	UserID           string         `json:"user_id"`
 	RequiredTotal    int64          `json:"required_total"`
 	TotalAccumulated int64          `json:"total_accumulated"`
 }

@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE refresh_tokens (
     token TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     is_revoked BOOLEAN NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

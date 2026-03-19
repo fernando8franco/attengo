@@ -17,7 +17,7 @@ type AssistanceLog struct {
 	ExitTime          sql.NullString `json:"exit_time"`
 	ManualMinutes     int64          `json:"manual_minutes"`
 	TotalDailyMinutes sql.NullInt64  `json:"total_daily_minutes"`
-	UserID            int64          `json:"user_id"`
+	UserID            string         `json:"user_id"`
 	CreatedAt         string         `json:"created_at"`
 	UpdatedAt         string         `json:"updated_at"`
 	DeletedAt         sql.NullString `json:"deleted_at"`
@@ -35,7 +35,7 @@ type Period struct {
 
 type RefreshToken struct {
 	Token     string       `json:"token"`
-	UserID    int64        `json:"user_id"`
+	UserID    string       `json:"user_id"`
 	ExpiresAt time.Time    `json:"expires_at"`
 	IsRevoked bool         `json:"is_revoked"`
 	CreatedAt time.Time    `json:"created_at"`
@@ -53,7 +53,7 @@ type RequiredHour struct {
 }
 
 type User struct {
-	ID             int64          `json:"id"`
+	ID             string         `json:"id"`
 	IsAdmin        bool           `json:"is_admin"`
 	Name           string         `json:"name"`
 	Email          string         `json:"email"`

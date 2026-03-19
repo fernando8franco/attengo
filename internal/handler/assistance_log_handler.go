@@ -17,7 +17,7 @@ func NewAssistanceLogHandler(svc service.AssistanceLogService) *AssistanceLogHan
 }
 
 type TakeAttendanceRequest struct {
-	UserID       int    `json:"user_id"  binding:"required,gt=0"`
+	UserID       string `json:"user_id"  binding:"required"`
 	UserPassword string `json:"user_password"  binding:"required"`
 }
 

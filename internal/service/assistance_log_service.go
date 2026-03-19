@@ -15,7 +15,7 @@ const (
 )
 
 type AssistanceLogInput struct {
-	UserID       int
+	UserID       string
 	UserPassword string
 }
 
@@ -37,12 +37,12 @@ type AttendaceDTO struct {
 	ExitTime         string `json:"exit_time"`
 	RequiredTotal    int    `json:"required_total"`
 	TotalAccumulated int    `json:"total_accumulated"`
-	UserID           int    `json:"user_id"`
+	UserID           string `json:"user_id"`
 }
 
 func (s *assistanceLogService) TakeAttendance(ctx context.Context, input AssistanceLogInput) (AttendaceDTO, error) {
 	userPsswrd, err := s.queries.ValidateUserPassword(ctx, repository.ValidateUserPasswordParams{
-		ID:       int64(input.UserID),
+		ID:       input.UserID,
 		Password: input.UserPassword,
 	})
 	if err != nil {
@@ -53,7 +53,7 @@ func (s *assistanceLogService) TakeAttendance(ctx context.Context, input Assista
 		return AttendaceDTO{}, apperr.NewUnauthorizedRequest("The user or password are incorrect")
 	}
 
-	lastEntry, err := s.queries.GetLastEntryLogByUser(ctx, int64(input.UserID))
+	lastEntry, err := s.queries.GetLastEntryLogByUser(ctx, input.UserID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return AttendaceDTO{}, err
 	}
@@ -65,7 +65,7 @@ func (s *assistanceLogService) TakeAttendance(ctx context.Context, input Assista
 	if noEntry || isNewDay {
 		entryLog, err := s.queries.CreateEntryLog(ctx, repository.CreateEntryLogParams{
 			LogDescription: Assitance,
-			UserID:         int64(input.UserID),
+			UserID:         input.UserID,
 		})
 		if err != nil {
 			return AttendaceDTO{}, err
@@ -88,7 +88,7 @@ func mapEntryToAttendaceDTO(entry repository.CreateEntryLogRow) AttendaceDTO {
 		EntryTime:        entry.EntryTime.String,
 		RequiredTotal:    int(entry.RequiredTotal),
 		TotalAccumulated: int(entry.TotalAccumulated),
-		UserID:           int(entry.UserID),
+		UserID:           entry.UserID,
 	}
 }
 
@@ -99,6 +99,6 @@ func mapExitToAttendaceDTO(exit repository.UpdateExitLogRow) AttendaceDTO {
 		ExitTime:         exit.ExitTime.String,
 		RequiredTotal:    int(exit.RequiredTotal),
 		TotalAccumulated: int(exit.TotalAccumulated),
-		UserID:           int(exit.UserID),
+		UserID:           exit.UserID,
 	}
 }

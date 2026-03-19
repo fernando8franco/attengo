@@ -17,7 +17,7 @@ RETURNING token, user_id, expires_at, is_revoked, created_at, updated_at, delete
 
 type CreateRefreshTokenParams struct {
 	Token  string `json:"token"`
-	UserID int64  `json:"user_id"`
+	UserID string `json:"user_id"`
 }
 
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error) {
@@ -53,9 +53,9 @@ AND is_revoked = 0
 AND expires_at > CURRENT_TIMESTAMP
 `
 
-func (q *Queries) GetUserIdFromRefreshToken(ctx context.Context, token string) (int64, error) {
+func (q *Queries) GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error) {
 	row := q.db.QueryRowContext(ctx, getUserIdFromRefreshToken, token)
-	var user_id int64
+	var user_id string
 	err := row.Scan(&user_id)
 	return user_id, err
 }

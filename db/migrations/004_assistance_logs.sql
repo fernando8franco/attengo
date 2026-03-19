@@ -12,7 +12,7 @@ CREATE TABLE assistance_logs (
             0
         )
     ) VIRTUAL,
-    user_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TEXT,

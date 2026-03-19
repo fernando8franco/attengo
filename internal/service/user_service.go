@@ -11,6 +11,7 @@ import (
 	"github.com/fernando8franco/attengo/internal/auth"
 	"github.com/fernando8franco/attengo/internal/config"
 	"github.com/fernando8franco/attengo/internal/repository"
+	"github.com/google/uuid"
 )
 
 const (
@@ -53,6 +54,7 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 	password := passwordGenetator(passwordLenght)
 
 	row, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
+		ID:       uuid.NewString(),
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: password,
@@ -97,6 +99,7 @@ func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (S
 	}
 
 	admin, err := s.queries.CreateAdmin(ctx, repository.CreateAdminParams{
+		ID:       uuid.NewString(),
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: hashedPassword,
@@ -105,7 +108,7 @@ func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (S
 		return SetUpAdminReponse{}, err
 	}
 
-	accessToken, err := auth.MakeJWT(s.cfg.IssuerJWT, s.cfg.SecretJWT, int(admin.ID), s.cfg.ExpirationTime)
+	accessToken, err := auth.MakeJWT(s.cfg.IssuerJWT, s.cfg.SecretJWT, admin.ID, s.cfg.ExpirationTime)
 	if err != nil {
 		return SetUpAdminReponse{}, err
 	}

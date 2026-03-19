@@ -11,8 +11,8 @@ import (
 )
 
 const createAdmin = `-- name: CreateAdmin :one
-INSERT INTO users (is_admin, name, email, password) 
-VALUES (1, ?, ?, ?)
+INSERT INTO users (id, is_admin, name, email, password) 
+VALUES (?, 1, ?, ?, ?)
 RETURNING 
 id,
 name,
@@ -20,27 +20,33 @@ email
 `
 
 type CreateAdminParams struct {
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type CreateAdminRow struct {
-	ID    int64  `json:"id"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
 func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (CreateAdminRow, error) {
-	row := q.db.QueryRowContext(ctx, createAdmin, arg.Name, arg.Email, arg.Password)
+	row := q.db.QueryRowContext(ctx, createAdmin,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.Password,
+	)
 	var i CreateAdminRow
 	err := row.Scan(&i.ID, &i.Name, &i.Email)
 	return i, err
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (name, email, password, required_hour_id, period_id) 
-VALUES (?, ?, ?, ?, ?)
+INSERT INTO users (id, name, email, password, required_hour_id, period_id) 
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING 
 id,
 name,
@@ -50,6 +56,7 @@ password,
 `
 
 type CreateUserParams struct {
+	ID             string        `json:"id"`
 	Name           string        `json:"name"`
 	Email          string        `json:"email"`
 	Password       string        `json:"password"`
@@ -58,7 +65,7 @@ type CreateUserParams struct {
 }
 
 type CreateUserRow struct {
-	ID               int64  `json:"id"`
+	ID               string `json:"id"`
 	Name             string `json:"name"`
 	Email            string `json:"email"`
 	Password         string `json:"password"`
@@ -67,6 +74,7 @@ type CreateUserRow struct {
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
+		arg.ID,
 		arg.Name,
 		arg.Email,
 		arg.Password,
@@ -106,7 +114,7 @@ WHERE is_admin = 0 AND id = ? AND password = ?
 `
 
 type ValidateUserPasswordParams struct {
-	ID       int64  `json:"id"`
+	ID       string `json:"id"`
 	Password string `json:"password"`
 }
 
