@@ -3,14 +3,18 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port        string
-	DatabaseURL string
-	Env         string
+	Port           string
+	DatabaseURL    string
+	Env            string
+	SecretJWT      string
+	IssuerJWT      string
+	ExpirationTime time.Duration
 }
 
 func Load() *Config {
@@ -19,9 +23,12 @@ func Load() *Config {
 	}
 
 	return &Config{
-		Port:        getEnv("PORT", ":8080"),
-		DatabaseURL: getEnv("DATABASE_URL", "./data/assistance.db"),
-		Env:         getEnv("ENV", "development"),
+		Port:           getEnv("PORT", ":8080"),
+		DatabaseURL:    getEnv("DATABASE_URL", "./data/assistance.db"),
+		Env:            getEnv("ENV", "development"),
+		SecretJWT:      getEnv("SecretJWT", "fernando"),
+		IssuerJWT:      getEnv("IssuerJWT", "franco"),
+		ExpirationTime: time.Hour,
 	}
 }
 

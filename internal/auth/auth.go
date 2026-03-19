@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,12 +36,12 @@ func CheckPasswordHash(password, hash string) (bool, error) {
 	return match, nil
 }
 
-func MakeJWT(issuer, tokenSecret string, userID uuid.UUID, expiresIn time.Duration) (string, error) {
+func MakeJWT(issuer, tokenSecret string, userID int, expiresIn time.Duration) (string, error) {
 	claims := jwt.RegisteredClaims{
 		Issuer:    issuer,
 		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn).UTC()),
-		Subject:   userID.String(),
+		Subject:   strconv.Itoa(userID),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString([]byte(tokenSecret))

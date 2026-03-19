@@ -44,7 +44,7 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	pSvc := service.NewPeriodService(conn)
 	periodHandler := handler.NewPeriodHandler(pSvc)
 
-	uSvc := service.NewUserService(conn)
+	uSvc := service.NewUserService(conn, cfg)
 	userHandler := handler.NewUserHandler(uSvc)
 
 	alSvc := service.NewAssistanceLogService(conn)

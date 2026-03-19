@@ -6,6 +6,7 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 )
 
 type AssistanceLog struct {
@@ -30,6 +31,16 @@ type Period struct {
 	CreatedAt string         `json:"created_at"`
 	UpdatedAt string         `json:"updated_at"`
 	DeletedAt sql.NullString `json:"deleted_at"`
+}
+
+type RefreshToken struct {
+	Token     string       `json:"token"`
+	UserID    int64        `json:"user_id"`
+	ExpiresAt time.Time    `json:"expires_at"`
+	IsRevoked bool         `json:"is_revoked"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
 }
 
 type RequiredHour struct {

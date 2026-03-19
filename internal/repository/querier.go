@@ -12,12 +12,16 @@ type Querier interface {
 	CreateAdmin(ctx context.Context, arg CreateAdminParams) (CreateAdminRow, error)
 	CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error)
 	CreatePeriod(ctx context.Context, arg CreatePeriodParams) (CreatePeriodRow, error)
+	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateRequiredHour(ctx context.Context, arg CreateRequiredHourParams) (CreateRequiredHourRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
 	ExistsAdmin(ctx context.Context) (bool, error)
 	GetLastEntryLogByUser(ctx context.Context, userID int64) (GetLastEntryLogByUserRow, error)
+	GetRevoked(ctx context.Context) (bool, error)
+	GetUserIdFromRefreshToken(ctx context.Context, token string) (int64, error)
+	SetRevokedAt(ctx context.Context, token string) error
 	UpdateExitLog(ctx context.Context, id int64) (UpdateExitLogRow, error)
 	ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error)
 }

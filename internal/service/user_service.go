@@ -9,6 +9,7 @@ import (
 
 	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/auth"
+	"github.com/fernando8franco/attengo/internal/config"
 	"github.com/fernando8franco/attengo/internal/repository"
 )
 
@@ -31,15 +32,19 @@ type CreateAdminInput struct {
 
 type UserService interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error)
-	SetUpAdmin(ctx context.Context, input CreateAdminInput) (repository.CreateAdminRow, error)
+	SetUpAdmin(ctx context.Context, input CreateAdminInput) (SetUpAdminReponse, error)
 }
 
 type userService struct {
 	queries *repository.Queries
+	cfg     *config.Config
 }
 
-func NewUserService(db *sql.DB) UserService {
-	return &userService{queries: repository.New(db)}
+func NewUserService(db *sql.DB, cfg *config.Config) UserService {
+	return &userService{
+		queries: repository.New(db),
+		cfg:     cfg,
+	}
 }
 
 func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error) {
@@ -70,31 +75,56 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 	return row, nil
 }
 
-func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (repository.CreateAdminRow, error) {
+type SetUpAdminReponse struct {
+	repository.CreateAdminRow
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (SetUpAdminReponse, error) {
 	exists, err := s.queries.ExistsAdmin(ctx)
 	if err != nil {
-		return repository.CreateAdminRow{}, err
+		return SetUpAdminReponse{}, err
 	}
 
 	if exists {
-		return repository.CreateAdminRow{}, apperr.NewForbiddenRequest("an admin account has already been set up")
+		return SetUpAdminReponse{}, apperr.NewForbiddenRequest("an admin account has already been set up")
 	}
 
 	hashedPassword, err := auth.HashPassword(input.Password)
 	if err != nil {
-		return repository.CreateAdminRow{}, err
+		return SetUpAdminReponse{}, err
 	}
 
-	row, err := s.queries.CreateAdmin(ctx, repository.CreateAdminParams{
+	admin, err := s.queries.CreateAdmin(ctx, repository.CreateAdminParams{
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: hashedPassword,
 	})
 	if err != nil {
-		return repository.CreateAdminRow{}, err
+		return SetUpAdminReponse{}, err
 	}
 
-	return row, err
+	accessToken, err := auth.MakeJWT(s.cfg.IssuerJWT, s.cfg.SecretJWT, int(admin.ID), s.cfg.ExpirationTime)
+	if err != nil {
+		return SetUpAdminReponse{}, err
+	}
+
+	refreshToken := auth.MakeRefreshToken()
+
+	_, err = s.queries.CreateRefreshToken(ctx, repository.CreateRefreshTokenParams{
+		Token:  refreshToken,
+		UserID: admin.ID,
+	})
+	if err != nil {
+		return SetUpAdminReponse{}, err
+	}
+
+	return SetUpAdminReponse{
+		CreateAdminRow: admin,
+		AccessToken:    accessToken,
+		RefreshToken:   refreshToken,
+	}, err
 }
 
 func passwordGenetator(length int) string {
