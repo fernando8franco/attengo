@@ -108,9 +108,11 @@ func (q *Queries) ExistsAdmin(ctx context.Context) (bool, error) {
 }
 
 const validateUserPassword = `-- name: ValidateUserPassword :one
-SELECT COUNT(1) > 0
-FROM users
-WHERE is_admin = 0 AND id = ? AND password = ?
+SELECT EXISTS (
+  SELECT 1
+  FROM users
+  WHERE is_admin = 0 AND id = ? AND password = ?
+) = 1
 `
 
 type ValidateUserPasswordParams struct {

@@ -9,9 +9,11 @@ password,
 (SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id);
 
 -- name: ValidateUserPassword :one
-SELECT COUNT(1) > 0
-FROM users
-WHERE is_admin = 0 AND id = ? AND password = ?;
+SELECT EXISTS (
+  SELECT 1
+  FROM users
+  WHERE is_admin = 0 AND id = ? AND password = ?
+) = 1;
 
 -- name: CreateAdmin :one
 INSERT INTO users (id, is_admin, name, email, password) 

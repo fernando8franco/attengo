@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	passwordLenght = 5
+	passwordLength = 5
 )
 
 type CreateUserInput struct {
@@ -51,7 +51,7 @@ func NewUserService(db *sql.DB, cfg *config.Config) UserService {
 func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.Email = strings.TrimSpace(input.Email)
-	password := passwordGenetator(passwordLenght)
+	password := passwordGenerator(passwordLength)
 
 	row, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
 		ID:       uuid.NewString(),
@@ -88,6 +88,9 @@ func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (S
 	if err != nil {
 		return SetUpAdminReponse{}, err
 	}
+
+	input.Name = strings.TrimSpace(input.Name)
+	input.Email = strings.TrimSpace(input.Email)
 
 	if exists {
 		return SetUpAdminReponse{}, apperr.NewForbiddenRequest("an admin account has already been set up")
@@ -130,7 +133,7 @@ func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (S
 	}, err
 }
 
-func passwordGenetator(length int) string {
+func passwordGenerator(length int) string {
 	lowerCase := "abcdefghijklmnopqrstuvwxyz"
 	number := "0123456789"
 
