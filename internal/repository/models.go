@@ -6,7 +6,6 @@ package repository
 
 import (
 	"database/sql"
-	"time"
 )
 
 type AssistanceLog struct {
@@ -53,14 +52,14 @@ type RequiredHour struct {
 }
 
 type User struct {
-	ID             string        `json:"id"`
-	IsAdmin        bool          `json:"is_admin"`
-	Name           string        `json:"name"`
-	Email          string        `json:"email"`
-	Password       string        `json:"password"`
-	RequiredHourID sql.NullInt64 `json:"required_hour_id"`
-	PeriodID       sql.NullInt64 `json:"period_id"`
-	CreatedAt      time.Time     `json:"created_at"`
-	UpdatedAt      time.Time     `json:"updated_at"`
-	DeletedAt      sql.NullTime  `json:"deleted_at"`
+	ID             string         `json:"id"`
+	IsAdmin        bool           `json:"is_admin"`
+	Name           string         `json:"name"`
+	Email          string         `json:"email"`
+	Password       string         `json:"password"`
+	RequiredHourID sql.NullInt64  `json:"required_hour_id"`
+	PeriodID       sql.NullInt64  `json:"period_id"`
+	CreatedAt      string         `json:"created_at"`
+	UpdatedAt      string         `json:"updated_at"`
+	DeletedAt      sql.NullString `json:"deleted_at"`
 }

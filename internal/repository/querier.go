@@ -21,6 +21,7 @@ type Querier interface {
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
 	GetRevoked(ctx context.Context) (bool, error)
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)
+	GetUsersPasswords(ctx context.Context) ([]string, error)
 	SetRevokedAt(ctx context.Context, token string) error
 	UpdateExitLog(ctx context.Context, id int64) (UpdateExitLogRow, error)
 	ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error)

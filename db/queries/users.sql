@@ -8,6 +8,9 @@ email,
 password,
 (SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id);
 
+-- name: GetUsersPasswords :many
+SELECT password FROM users WHERE is_admin = 0;
+
 -- name: ValidateUserPassword :one
 SELECT EXISTS (
   SELECT 1

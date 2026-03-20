@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"math/rand"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,7 +17,8 @@ import (
 )
 
 const (
-	passwordLength = 5
+	PasswordLength     = 6
+	MaxPasswordAttemps = 10000
 )
 
 type CreateUserInput struct {
@@ -49,9 +52,22 @@ func NewUserService(db *sql.DB, cfg *config.Config) UserService {
 }
 
 func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error) {
+	passwords, err := s.queries.GetUsersPasswords(ctx)
+	if err != nil {
+		return repository.CreateUserRow{}, err
+	}
+
 	input.Name = strings.TrimSpace(input.Name)
 	input.Email = strings.TrimSpace(input.Email)
-	password := passwordGenerator(passwordLength)
+	password := passwordGenerator(PasswordLength)
+	attemps := 0
+	for slices.Contains(passwords, password) {
+		password = passwordGenerator(PasswordLength)
+		attemps++
+		if attemps == MaxPasswordAttemps {
+			return repository.CreateUserRow{}, errors.New("Max passwords attemps")
+		}
+	}
 
 	row, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
 		ID:       uuid.NewString(),

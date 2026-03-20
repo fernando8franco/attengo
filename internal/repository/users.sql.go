@@ -107,6 +107,33 @@ func (q *Queries) ExistsAdmin(ctx context.Context) (bool, error) {
 	return column_1, err
 }
 
+const getUsersPasswords = `-- name: GetUsersPasswords :many
+SELECT password FROM users WHERE is_admin = 0
+`
+
+func (q *Queries) GetUsersPasswords(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersPasswords)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var password string
+		if err := rows.Scan(&password); err != nil {
+			return nil, err
+		}
+		items = append(items, password)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const validateUserPassword = `-- name: ValidateUserPassword :one
 SELECT EXISTS (
   SELECT 1
