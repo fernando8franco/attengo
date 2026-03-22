@@ -4,13 +4,11 @@ CREATE TABLE refresh_tokens (
     user_id TEXT NOT NULL,
     expires_at TEXT NOT NULL,
     is_revoked BOOLEAN NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     deleted_at TEXT,
-    CONSTRAINT fk_user
-        FOREIGN KEY(user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
+    CONSTRAINT fk_user 
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- +goose Down

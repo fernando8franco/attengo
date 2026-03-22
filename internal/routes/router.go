@@ -50,6 +50,9 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	alSvc := service.NewAssistanceLogService(conn)
 	assistanceLogHandler := handler.NewAssistanceLogHandler(alSvc)
 
+	rtSvc := service.NewRefreshTokenService(conn, cfg)
+	refreshTokenHandler := handler.NewRefreshTokenHandler(rtSvc)
+
 	v1 := r.Group("/api/v1")
 	{
 		requiredHours := v1.Group("/required_hours")
@@ -76,6 +79,9 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 		{
 			attendace.POST("", assistanceLogHandler.TakeAttendance)
 		}
+
+		v1.POST("/refresh", refreshTokenHandler.RefreshAccessToken)
+		//TODO revoke
 	}
 
 	if cfg.Env == "development" {

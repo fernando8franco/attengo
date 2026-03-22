@@ -50,7 +50,8 @@ const getUserIdFromRefreshToken = `-- name: GetUserIdFromRefreshToken :one
 SELECT user_id FROM refresh_tokens
 WHERE token = ?
 AND is_revoked = 0
-AND expires_at > CURRENT_TIMESTAMP
+AND deleted_at IS NULL
+AND datetime(expires_at) > datetime('now')
 `
 
 func (q *Queries) GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error) {
