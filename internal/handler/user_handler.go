@@ -30,7 +30,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	u, err := h.UserService.CreateUser(c.Request.Context(), service.CreateUserInput{
+	url, err := h.UserService.CreateUser(c.Request.Context(), service.CreateUserInput{
 		Name:           req.Name,
 		Email:          req.Email,
 		RequiredHourID: req.RequiredHourID,
@@ -41,7 +41,9 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, u)
+	c.Header("Location", url)
+
+	c.Status(http.StatusCreated)
 }
 
 type SepUpAdminRequest struct {

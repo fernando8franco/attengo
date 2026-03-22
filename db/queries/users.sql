@@ -2,11 +2,7 @@
 INSERT INTO users (id, name, email, password, required_hour_id, period_id) 
 VALUES (?, ?, ?, ?, ?, ?)
 RETURNING 
-id,
-name,
-email,
-password,
-(SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id);
+id;
 
 -- name: GetUsersPasswords :many
 SELECT password FROM users WHERE is_admin = 0;

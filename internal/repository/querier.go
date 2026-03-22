@@ -14,7 +14,7 @@ type Querier interface {
 	CreatePeriod(ctx context.Context, arg CreatePeriodParams) (CreatePeriodRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateRequiredHour(ctx context.Context, arg CreateRequiredHourParams) (CreateRequiredHourRow, error)
-	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (string, error)
 	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
 	ExistsAdmin(ctx context.Context) (bool, error)

@@ -48,11 +48,7 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, name, email, password, required_hour_id, period_id) 
 VALUES (?, ?, ?, ?, ?, ?)
 RETURNING 
-id,
-name,
-email,
-password,
-(SELECT type AS required_hour_type FROM required_hours WHERE id = users.required_hour_id)
+id
 `
 
 type CreateUserParams struct {
@@ -64,15 +60,7 @@ type CreateUserParams struct {
 	PeriodID       sql.NullInt64 `json:"period_id"`
 }
 
-type CreateUserRow struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	Email            string `json:"email"`
-	Password         string `json:"password"`
-	RequiredHourType string `json:"required_hour_type"`
-}
-
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ID,
 		arg.Name,
@@ -81,15 +69,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		arg.RequiredHourID,
 		arg.PeriodID,
 	)
-	var i CreateUserRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Email,
-		&i.Password,
-		&i.RequiredHourType,
-	)
-	return i, err
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const existsAdmin = `-- name: ExistsAdmin :one

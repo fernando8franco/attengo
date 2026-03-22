@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"math/rand"
 	"slices"
 	"strings"
@@ -17,6 +18,7 @@ import (
 )
 
 const (
+	UsersString        = "users"
 	PasswordLength     = 6
 	MaxPasswordAttemps = 10000
 )
@@ -35,7 +37,7 @@ type CreateAdminInput struct {
 }
 
 type UserService interface {
-	CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error)
+	CreateUser(ctx context.Context, input CreateUserInput) (string, error)
 	SetUpAdmin(ctx context.Context, input CreateAdminInput) (SetUpAdminReponse, error)
 }
 
@@ -51,10 +53,10 @@ func NewUserService(db *sql.DB, cfg *config.Config) UserService {
 	}
 }
 
-func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (repository.CreateUserRow, error) {
+func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (string, error) {
 	passwords, err := s.queries.GetUsersPasswords(ctx)
 	if err != nil {
-		return repository.CreateUserRow{}, err
+		return "", err
 	}
 
 	input.Name = strings.TrimSpace(input.Name)
@@ -65,11 +67,11 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 		password = passwordGenerator(PasswordLength)
 		attemps++
 		if attemps == MaxPasswordAttemps {
-			return repository.CreateUserRow{}, errors.New("Max passwords attemps")
+			return "", errors.New("Max passwords attemps")
 		}
 	}
 
-	row, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
+	userID, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
 		ID:       uuid.NewString(),
 		Name:     input.Name,
 		Email:    input.Email,
@@ -87,10 +89,12 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (re
 		if IsUniqueConstraintError(err) {
 			err = apperr.NewBadRequest(err.Error())
 		}
-		return repository.CreateUserRow{}, err
+		return "", err
 	}
 
-	return row, nil
+	locationURL := fmt.Sprintf("/%s/%s", UsersString, userID)
+
+	return locationURL, nil
 }
 
 type SetUpAdminReponse struct {
