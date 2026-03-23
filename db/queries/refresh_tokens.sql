@@ -14,6 +14,3 @@ AND datetime(expires_at) > datetime('now');
 UPDATE refresh_tokens
 SET is_revoked = 1, updated_at = datetime('now')
 WHERE token = ?;
-
--- name: GetRevoked :one
-SELECT is_revoked FROM refresh_tokens;

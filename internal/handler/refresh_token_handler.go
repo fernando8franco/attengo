@@ -34,3 +34,21 @@ func (h *RefreshTokenHandler) RefreshAccessToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, accessToken)
 }
+
+func (h *RefreshTokenHandler) RevokeRefreshToken(c *gin.Context) {
+	refreshToken, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.Error(apperr.NewBadRequest("Couldn't find the refresh token"))
+		return
+	}
+
+	err = h.RefreshTokenService.RevokeRefreshToken(c.Request.Context(), service.RefreshTokenInput{
+		Token: refreshToken,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}

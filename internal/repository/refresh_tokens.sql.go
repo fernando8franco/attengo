@@ -35,17 +35,6 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 	return i, err
 }
 
-const getRevoked = `-- name: GetRevoked :one
-SELECT is_revoked FROM refresh_tokens
-`
-
-func (q *Queries) GetRevoked(ctx context.Context) (bool, error) {
-	row := q.db.QueryRowContext(ctx, getRevoked)
-	var is_revoked bool
-	err := row.Scan(&is_revoked)
-	return is_revoked, err
-}
-
 const getUserIdFromRefreshToken = `-- name: GetUserIdFromRefreshToken :one
 SELECT user_id FROM refresh_tokens
 WHERE token = ?
@@ -63,7 +52,7 @@ func (q *Queries) GetUserIdFromRefreshToken(ctx context.Context, token string) (
 
 const setRevokedAt = `-- name: SetRevokedAt :exec
 UPDATE refresh_tokens
-SET is_revoked = 1, updated_at = CURRENT_TIMESTAMP
+SET is_revoked = 1, updated_at = datetime('now')
 WHERE token = ?
 `
 

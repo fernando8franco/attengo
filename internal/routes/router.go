@@ -81,7 +81,7 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 		}
 
 		v1.POST("/refresh", refreshTokenHandler.RefreshAccessToken)
-		//TODO revoke
+		v1.POST("/revoke", refreshTokenHandler.RevokeRefreshToken)
 	}
 
 	if cfg.Env == "development" {

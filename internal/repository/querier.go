@@ -19,7 +19,6 @@ type Querier interface {
 	DeleteRequiredHours(ctx context.Context) error
 	ExistsAdmin(ctx context.Context) (bool, error)
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
-	GetRevoked(ctx context.Context) (bool, error)
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)
 	GetUsersPasswords(ctx context.Context) ([]string, error)
 	SetRevokedAt(ctx context.Context, token string) error
