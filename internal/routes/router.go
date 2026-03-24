@@ -56,16 +56,19 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	{
 		requiredHours := v1.Group("/required_hours")
+		requiredHours.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
 		{
 			requiredHours.POST("", requiredHoursHandler.CreateRequiredHour)
 		}
 
 		periods := v1.Group("/periods")
+		periods.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
 		{
 			periods.POST("", periodHandler.CreatePeriod)
 		}
 
 		users := v1.Group("/users")
+		users.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
 		{
 			users.POST("", userHandler.CreateUser)
 		}

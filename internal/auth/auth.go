@@ -50,7 +50,7 @@ func MakeJWT(issuer, tokenSecret, userID string, expiresIn time.Duration) (strin
 	return ss, nil
 }
 
-func ValidateJWT(issuer, tokenString, tokenSecret string) (string, error) {
+func ValidateJWT(issuer, tokenSecret, tokenString string) (string, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (any, error) {
 		return []byte(tokenSecret), nil
 	})
