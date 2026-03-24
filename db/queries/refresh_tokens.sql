@@ -1,7 +1,6 @@
--- name: CreateRefreshToken :one
+-- name: CreateRefreshToken :exec
 INSERT INTO refresh_tokens (token, user_id, expires_at)
-VALUES (?, ?, datetime('now', '+30 days'))
-RETURNING *;
+VALUES (?, ?, datetime('now', '+30 days'));
 
 -- name: GetUserIdFromRefreshToken :one
 SELECT user_id FROM refresh_tokens

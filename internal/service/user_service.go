@@ -36,9 +36,16 @@ type CreateAdminInput struct {
 	Password string
 }
 
+type LoginAdminInput struct {
+	Email    string
+	Password string
+}
+
 type UserService interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (string, error)
-	SetUpAdmin(ctx context.Context, input CreateAdminInput) (SetUpAdminReponse, error)
+	SetUpAdmin(ctx context.Context, input CreateAdminInput) (TokensReponse, error)
+	AdminLogin(ctx context.Context, input LoginAdminInput) (TokensReponse, error)
+	AdminLogout(ctx context.Context, token string) error
 }
 
 type userService struct {
@@ -97,60 +104,100 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (st
 	return locationURL, nil
 }
 
-type SetUpAdminReponse struct {
-	repository.CreateAdminRow
+type TokensReponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (SetUpAdminReponse, error) {
+func (s *userService) SetUpAdmin(ctx context.Context, input CreateAdminInput) (TokensReponse, error) {
 	exists, err := s.queries.ExistsAdmin(ctx)
 	if err != nil {
-		return SetUpAdminReponse{}, err
+		return TokensReponse{}, err
 	}
 
 	input.Name = strings.TrimSpace(input.Name)
 	input.Email = strings.TrimSpace(input.Email)
 
 	if exists {
-		return SetUpAdminReponse{}, apperr.NewForbiddenRequest("an admin account has already been set up")
+		return TokensReponse{}, apperr.NewForbiddenRequest("an admin account has already been set up")
 	}
 
 	hashedPassword, err := auth.HashPassword(input.Password)
 	if err != nil {
-		return SetUpAdminReponse{}, err
+		return TokensReponse{}, err
 	}
 
-	admin, err := s.queries.CreateAdmin(ctx, repository.CreateAdminParams{
+	adminID, err := s.queries.CreateAdmin(ctx, repository.CreateAdminParams{
 		ID:       uuid.NewString(),
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: hashedPassword,
 	})
 	if err != nil {
-		return SetUpAdminReponse{}, err
+		return TokensReponse{}, err
 	}
 
-	accessToken, err := auth.MakeJWT(s.cfg.IssuerJWT, s.cfg.SecretJWT, admin.ID, s.cfg.ExpirationTime)
+	accessToken, err := auth.MakeJWT(s.cfg.IssuerJWT, s.cfg.SecretJWT, adminID, s.cfg.ExpirationTime)
 	if err != nil {
-		return SetUpAdminReponse{}, err
+		return TokensReponse{}, err
 	}
 
 	refreshToken := auth.MakeRefreshToken()
 
-	_, err = s.queries.CreateRefreshToken(ctx, repository.CreateRefreshTokenParams{
+	err = s.queries.CreateRefreshToken(ctx, repository.CreateRefreshTokenParams{
 		Token:  refreshToken,
-		UserID: admin.ID,
+		UserID: adminID,
 	})
 	if err != nil {
-		return SetUpAdminReponse{}, err
+		return TokensReponse{}, err
 	}
 
-	return SetUpAdminReponse{
-		CreateAdminRow: admin,
-		AccessToken:    accessToken,
-		RefreshToken:   refreshToken,
-	}, err
+	response := TokensReponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	return response, err
+}
+
+func (s *userService) AdminLogin(ctx context.Context, input LoginAdminInput) (TokensReponse, error) {
+	user, err := s.queries.GetAdminIDAndPasswordByEmail(ctx, input.Email)
+	if err != nil {
+		return TokensReponse{}, apperr.NewBadRequest(err.Error())
+	}
+
+	match, err := auth.CheckPasswordHash(input.Password, user.Password)
+	if err != nil || !match {
+		return TokensReponse{}, apperr.NewUnauthorizedRequest("Incorrect email or password")
+	}
+
+	accessToken, err := auth.MakeJWT(s.cfg.IssuerJWT, s.cfg.SecretJWT, user.ID, s.cfg.ExpirationTime)
+	if err != nil {
+		return TokensReponse{}, err
+	}
+
+	refreshToken := auth.MakeRefreshToken()
+
+	err = s.queries.CreateRefreshToken(ctx, repository.CreateRefreshTokenParams{
+		Token:  refreshToken,
+		UserID: user.ID,
+	})
+
+	reponse := TokensReponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	return reponse, nil
+}
+
+func (s *userService) AdminLogout(ctx context.Context, token string) error {
+	err := s.queries.SetRevokedAt(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func passwordGenerator(length int) string {

@@ -16,7 +16,6 @@ type RefreshTokenInput struct {
 
 type RefreshTokenService interface {
 	CreateAccessToken(ctx context.Context, input RefreshTokenInput) (RefreshTokenResponse, error)
-	RevokeRefreshToken(ctx context.Context, input RefreshTokenInput) error
 }
 
 type refreshTokenService struct {
@@ -47,13 +46,4 @@ func (s *refreshTokenService) CreateAccessToken(ctx context.Context, input Refre
 	}
 
 	return RefreshTokenResponse{AccessToken: accessToken}, nil
-}
-
-func (s *refreshTokenService) RevokeRefreshToken(ctx context.Context, input RefreshTokenInput) error {
-	err := s.queries.SetRevokedAt(ctx, input.Token)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

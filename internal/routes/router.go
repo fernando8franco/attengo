@@ -80,8 +80,9 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 			attendace.POST("", assistanceLogHandler.TakeAttendance)
 		}
 
+		v1.POST("/login", userHandler.Login)
+		v1.POST("/logout", userHandler.Logout)
 		v1.POST("/refresh", refreshTokenHandler.RefreshAccessToken)
-		v1.POST("/revoke", refreshTokenHandler.RevokeRefreshToken)
 	}
 
 	if cfg.Env == "development" {

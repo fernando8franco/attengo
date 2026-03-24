@@ -18,9 +18,7 @@ SELECT EXISTS (
 INSERT INTO users (id, is_admin, name, email, password) 
 VALUES (?, 1, ?, ?, ?)
 RETURNING 
-id,
-name,
-email;
+id;
 
 -- name: ExistsAdmin :one
 SELECT EXISTS (
@@ -28,3 +26,10 @@ SELECT EXISTS (
   FROM users
   WHERE is_admin = 1
 ) = 1;
+
+-- name: GetAdminIDAndPasswordByEmail :one
+SELECT id, password
+FROM users
+WHERE email = ?
+AND is_admin = 1
+AND deleted_at IS NULL;

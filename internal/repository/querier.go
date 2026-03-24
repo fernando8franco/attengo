@@ -9,15 +9,16 @@ import (
 )
 
 type Querier interface {
-	CreateAdmin(ctx context.Context, arg CreateAdminParams) (CreateAdminRow, error)
+	CreateAdmin(ctx context.Context, arg CreateAdminParams) (string, error)
 	CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error)
 	CreatePeriod(ctx context.Context, arg CreatePeriodParams) (CreatePeriodRow, error)
-	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
+	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateRequiredHour(ctx context.Context, arg CreateRequiredHourParams) (CreateRequiredHourRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (string, error)
 	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
 	ExistsAdmin(ctx context.Context) (bool, error)
+	GetAdminIDAndPasswordByEmail(ctx context.Context, email string) (GetAdminIDAndPasswordByEmailRow, error)
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)
 	GetUsersPasswords(ctx context.Context) ([]string, error)

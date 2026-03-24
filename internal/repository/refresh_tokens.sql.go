@@ -9,10 +9,9 @@ import (
 	"context"
 )
 
-const createRefreshToken = `-- name: CreateRefreshToken :one
+const createRefreshToken = `-- name: CreateRefreshToken :exec
 INSERT INTO refresh_tokens (token, user_id, expires_at)
 VALUES (?, ?, datetime('now', '+30 days'))
-RETURNING token, user_id, expires_at, is_revoked, created_at, updated_at, deleted_at
 `
 
 type CreateRefreshTokenParams struct {
@@ -20,19 +19,9 @@ type CreateRefreshTokenParams struct {
 	UserID string `json:"user_id"`
 }
 
-func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error) {
-	row := q.db.QueryRowContext(ctx, createRefreshToken, arg.Token, arg.UserID)
-	var i RefreshToken
-	err := row.Scan(
-		&i.Token,
-		&i.UserID,
-		&i.ExpiresAt,
-		&i.IsRevoked,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
-	return i, err
+func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error {
+	_, err := q.db.ExecContext(ctx, createRefreshToken, arg.Token, arg.UserID)
+	return err
 }
 
 const getUserIdFromRefreshToken = `-- name: GetUserIdFromRefreshToken :one

@@ -14,9 +14,7 @@ const createAdmin = `-- name: CreateAdmin :one
 INSERT INTO users (id, is_admin, name, email, password) 
 VALUES (?, 1, ?, ?, ?)
 RETURNING 
-id,
-name,
-email
+id
 `
 
 type CreateAdminParams struct {
@@ -26,22 +24,16 @@ type CreateAdminParams struct {
 	Password string `json:"password"`
 }
 
-type CreateAdminRow struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (CreateAdminRow, error) {
+func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, createAdmin,
 		arg.ID,
 		arg.Name,
 		arg.Email,
 		arg.Password,
 	)
-	var i CreateAdminRow
-	err := row.Scan(&i.ID, &i.Name, &i.Email)
-	return i, err
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const createUser = `-- name: CreateUser :one
@@ -87,6 +79,26 @@ func (q *Queries) ExistsAdmin(ctx context.Context) (bool, error) {
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const getAdminIDAndPasswordByEmail = `-- name: GetAdminIDAndPasswordByEmail :one
+SELECT id, password
+FROM users
+WHERE email = ?
+AND is_admin = 1
+AND deleted_at IS NULL
+`
+
+type GetAdminIDAndPasswordByEmailRow struct {
+	ID       string `json:"id"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) GetAdminIDAndPasswordByEmail(ctx context.Context, email string) (GetAdminIDAndPasswordByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getAdminIDAndPasswordByEmail, email)
+	var i GetAdminIDAndPasswordByEmailRow
+	err := row.Scan(&i.ID, &i.Password)
+	return i, err
 }
 
 const getUsersPasswords = `-- name: GetUsersPasswords :many
