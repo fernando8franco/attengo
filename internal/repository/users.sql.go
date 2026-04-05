@@ -129,21 +129,13 @@ func (q *Queries) GetUsersPasswords(ctx context.Context) ([]string, error) {
 }
 
 const validateUserPassword = `-- name: ValidateUserPassword :one
-SELECT EXISTS (
-  SELECT 1
-  FROM users
-  WHERE is_admin = 0 AND id = ? AND password = ?
-) = 1
+SELECT id FROM users
+WHERE is_admin = 0 AND password = ?
 `
 
-type ValidateUserPasswordParams struct {
-	ID       string `json:"id"`
-	Password string `json:"password"`
-}
-
-func (q *Queries) ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, validateUserPassword, arg.ID, arg.Password)
-	var column_1 bool
-	err := row.Scan(&column_1)
-	return column_1, err
+func (q *Queries) ValidateUserPassword(ctx context.Context, password string) (string, error) {
+	row := q.db.QueryRowContext(ctx, validateUserPassword, password)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }

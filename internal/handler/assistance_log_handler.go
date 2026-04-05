@@ -17,11 +17,10 @@ func NewAssistanceLogHandler(svc service.AssistanceLogService) *AssistanceLogHan
 }
 
 type TakeAttendanceRequest struct {
-	UserID       string `json:"user_id"  binding:"required"`
-	UserPassword string `json:"user_password"  binding:"required"`
+	UserPassword string `json:"user_password" form:"user_password" binding:"required"`
 }
 
-func (h *AssistanceLogHandler) TakeAttendance(c *gin.Context) {
+/* func (h *AssistanceLogHandler) TakeAttendance(c *gin.Context) {
 	var req TakeAttendanceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(apperr.NewBadRequest(err.Error()))
@@ -29,7 +28,6 @@ func (h *AssistanceLogHandler) TakeAttendance(c *gin.Context) {
 	}
 
 	attendace, err := h.assistanceLogService.TakeAttendance(c.Request.Context(), service.AssistanceLogInput{
-		UserID:       req.UserID,
 		UserPassword: req.UserPassword,
 	})
 	if err != nil {
@@ -38,4 +36,36 @@ func (h *AssistanceLogHandler) TakeAttendance(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, attendace)
+} */
+
+func (h *AssistanceLogHandler) Index(c *gin.Context) {
+	c.HTML(
+		http.StatusOK,
+		"users.html",
+		gin.H{
+			"Title": "Asistencia",
+		},
+	)
+}
+
+func (h *AssistanceLogHandler) Attendance(c *gin.Context) {
+	var req TakeAttendanceRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.Error(apperr.NewBadRequest(err.Error()))
+		return
+	}
+
+	attendace, err := h.assistanceLogService.TakeAttendance(c.Request.Context(), service.AssistanceLogInput{
+		UserPassword: req.UserPassword,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.HTML(
+		http.StatusOK,
+		"attendace.html",
+		attendace,
+	)
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/fernando8franco/attengo/internal/apperr"
 	"github.com/fernando8franco/attengo/internal/repository"
+	"github.com/google/uuid"
 )
 
 const (
@@ -15,7 +16,6 @@ const (
 )
 
 type AssistanceLogInput struct {
-	UserID       string
 	UserPassword string
 }
 
@@ -32,7 +32,7 @@ func NewAssistanceLogService(db *sql.DB) AssistanceLogService {
 }
 
 type AttendaceDTO struct {
-	ID               int    `json:"id"`
+	ID               string `json:"id"`
 	EntryTime        string `json:"entry_time"`
 	ExitTime         string `json:"exit_time"`
 	RequiredTotal    int    `json:"required_total"`
@@ -41,19 +41,12 @@ type AttendaceDTO struct {
 }
 
 func (s *assistanceLogService) TakeAttendance(ctx context.Context, input AssistanceLogInput) (AttendaceDTO, error) {
-	userPsswrd, err := s.queries.ValidateUserPassword(ctx, repository.ValidateUserPasswordParams{
-		ID:       input.UserID,
-		Password: input.UserPassword,
-	})
+	userID, err := s.queries.ValidateUserPassword(ctx, input.UserPassword)
 	if err != nil {
-		return AttendaceDTO{}, err
+		return AttendaceDTO{}, apperr.NewUnauthorizedRequest("The password is no valid")
 	}
 
-	if !userPsswrd {
-		return AttendaceDTO{}, apperr.NewUnauthorizedRequest("The user or password are incorrect")
-	}
-
-	lastEntry, err := s.queries.GetLastEntryLogByUser(ctx, input.UserID)
+	lastEntry, err := s.queries.GetLastEntryLogByUser(ctx, userID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return AttendaceDTO{}, err
 	}
@@ -64,14 +57,19 @@ func (s *assistanceLogService) TakeAttendance(ctx context.Context, input Assista
 
 	if noEntry || isNewDay {
 		entryLog, err := s.queries.CreateEntryLog(ctx, repository.CreateEntryLogParams{
+			ID:             uuid.NewString(),
 			LogDescription: Assitance,
-			UserID:         input.UserID,
+			UserID:         userID,
 		})
 		if err != nil {
 			return AttendaceDTO{}, err
 		}
 
-		return mapEntryToAttendaceDTO(entryLog), nil
+		entry, err := mapEntryToAttendaceDTO(entryLog)
+		if err != nil {
+			return AttendaceDTO{}, err
+		}
+		return entry, nil
 	}
 
 	exitLog, err := s.queries.UpdateExitLog(ctx, lastEntry.ID)
@@ -79,26 +77,60 @@ func (s *assistanceLogService) TakeAttendance(ctx context.Context, input Assista
 		return AttendaceDTO{}, err
 	}
 
-	return mapExitToAttendaceDTO(exitLog), nil
+	exit, err := mapExitToAttendaceDTO(exitLog)
+	if err != nil {
+		return AttendaceDTO{}, err
+	}
+	return exit, nil
 }
 
-func mapEntryToAttendaceDTO(entry repository.CreateEntryLogRow) AttendaceDTO {
+func mapEntryToAttendaceDTO(entry repository.CreateEntryLogRow) (AttendaceDTO, error) {
+	mexTimes, err := convertUTCToMexTime(entry.EntryTime.String)
+	if err != nil {
+		return AttendaceDTO{}, nil
+	}
+
 	return AttendaceDTO{
-		ID:               int(entry.ID),
-		EntryTime:        entry.EntryTime.String,
+		ID:               entry.ID,
+		EntryTime:        mexTimes[0],
 		RequiredTotal:    int(entry.RequiredTotal),
 		TotalAccumulated: int(entry.TotalAccumulated),
 		UserID:           entry.UserID,
-	}
+	}, nil
 }
 
-func mapExitToAttendaceDTO(exit repository.UpdateExitLogRow) AttendaceDTO {
+func mapExitToAttendaceDTO(exit repository.UpdateExitLogRow) (AttendaceDTO, error) {
+	mexTimes, err := convertUTCToMexTime(exit.EntryTime.String, exit.ExitTime.String)
+	if err != nil {
+		return AttendaceDTO{}, nil
+	}
+
 	return AttendaceDTO{
-		ID:               int(exit.ID),
-		EntryTime:        exit.EntryTime.String,
-		ExitTime:         exit.ExitTime.String,
+		ID:               exit.ID,
+		EntryTime:        mexTimes[0],
+		ExitTime:         mexTimes[1],
 		RequiredTotal:    int(exit.RequiredTotal),
 		TotalAccumulated: int(exit.TotalAccumulated),
 		UserID:           exit.UserID,
+	}, nil
+}
+
+func convertUTCToMexTime(utcTimes ...string) ([]string, error) {
+	mexTimes := []string{}
+
+	mexicoZone, err := time.LoadLocation("America/Mexico_City")
+	if err != nil {
+		return mexTimes, nil
 	}
+
+	for _, t := range utcTimes {
+		entryTimeUTC, err := time.Parse(time.TimeOnly, t)
+		if err != nil {
+			return mexTimes, err
+		}
+
+		mexTimes = append(mexTimes, entryTimeUTC.In(mexicoZone).Format(time.TimeOnly))
+	}
+
+	return mexTimes, nil
 }

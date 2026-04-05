@@ -23,8 +23,8 @@ type Querier interface {
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)
 	GetUsersPasswords(ctx context.Context) ([]string, error)
 	SetRevokedAt(ctx context.Context, token string) error
-	UpdateExitLog(ctx context.Context, id int64) (UpdateExitLogRow, error)
-	ValidateUserPassword(ctx context.Context, arg ValidateUserPasswordParams) (bool, error)
+	UpdateExitLog(ctx context.Context, id string) (UpdateExitLogRow, error)
+	ValidateUserPassword(ctx context.Context, password string) (string, error)
 }
 
 var _ Querier = (*Queries)(nil)

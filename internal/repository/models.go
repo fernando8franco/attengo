@@ -9,7 +9,7 @@ import (
 )
 
 type AssistanceLog struct {
-	ID                int64          `json:"id"`
+	ID                string         `json:"id"`
 	LogDescription    string         `json:"log_description"`
 	LogDate           string         `json:"log_date"`
 	EntryTime         sql.NullString `json:"entry_time"`

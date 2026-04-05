@@ -1,6 +1,6 @@
 -- name: CreateEntryLog :one
-INSERT INTO assistance_logs (log_description, user_id) 
-VALUES (?, ?)
+INSERT INTO assistance_logs (id, log_description, user_id) 
+VALUES (?, ?, ?)
 RETURNING 
 assistance_logs.id,
 assistance_logs.entry_time,

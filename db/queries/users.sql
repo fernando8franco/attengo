@@ -8,11 +8,8 @@ id;
 SELECT password FROM users WHERE is_admin = 0;
 
 -- name: ValidateUserPassword :one
-SELECT EXISTS (
-  SELECT 1
-  FROM users
-  WHERE is_admin = 0 AND id = ? AND password = ?
-) = 1;
+SELECT id FROM users
+WHERE is_admin = 0 AND password = ?;
 
 -- name: CreateAdmin :one
 INSERT INTO users (id, is_admin, name, email, password) 

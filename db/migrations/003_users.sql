@@ -7,8 +7,8 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     required_hour_id INTEGER,
     period_id INTEGER,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     deleted_at TEXT,
     CONSTRAINT fk_required_hour
         FOREIGN KEY (required_hour_id)

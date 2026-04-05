@@ -38,6 +38,9 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	r.Use(gin.Logger())
 	r.Use(middleware.ErrorHandler())
 
+	r.Static("/static", "./web/static")
+	r.LoadHTMLGlob("web/templates/**/*.html")
+
 	rhSvc := service.NewRequiredHourService(conn)
 	requiredHoursHandler := handler.NewRequiredHourHandler(rhSvc)
 
@@ -52,6 +55,9 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 
 	rtSvc := service.NewRefreshTokenService(conn, cfg)
 	refreshTokenHandler := handler.NewRefreshTokenHandler(rtSvc)
+
+	r.GET("/", assistanceLogHandler.Index)
+	r.POST("/attendace", assistanceLogHandler.Attendance)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -78,10 +84,10 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 			setup.POST("/admin", userHandler.SetUpAdmin)
 		}
 
-		attendace := v1.Group("/attendace")
+		/* attendace := v1.Group("/attendace")
 		{
 			attendace.POST("", assistanceLogHandler.TakeAttendance)
-		}
+		} */
 
 		v1.POST("/login", userHandler.Login)
 		v1.POST("/logout", userHandler.Logout)

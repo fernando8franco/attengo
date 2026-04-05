@@ -1,0 +1,23 @@
+{{ define "users.html" }}
+    {{ template "base" . }}
+{{ end }}
+
+{{ define "content" }}
+    <!-- <h2>Tomar asistencia</h2> -->
+    {{ template "form" .}}
+    <hr />
+    <div id="display-attendace">
+
+    </div>
+{{ end }}
+
+{{ define "form" }}
+<form 
+    hx-post="/attendace" 
+    hx-target="#display-attendace"
+    hx-on::after-request="if(event.detail.successful) this.reset()">
+    <!-- id: <input type="text" name="user_id" /> -->
+    <input type="text" name="user_password" autocomplete="off"/>
+    <button type="submit">Enviar</button>
+</form>
+{{ end }}

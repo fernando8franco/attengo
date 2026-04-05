@@ -11,8 +11,8 @@ import (
 )
 
 const createEntryLog = `-- name: CreateEntryLog :one
-INSERT INTO assistance_logs (log_description, user_id) 
-VALUES (?, ?)
+INSERT INTO assistance_logs (id, log_description, user_id) 
+VALUES (?, ?, ?)
 RETURNING 
 assistance_logs.id,
 assistance_logs.entry_time,
@@ -31,12 +31,13 @@ assistance_logs.user_id,
 `
 
 type CreateEntryLogParams struct {
+	ID             string `json:"id"`
 	LogDescription string `json:"log_description"`
 	UserID         string `json:"user_id"`
 }
 
 type CreateEntryLogRow struct {
-	ID               int64          `json:"id"`
+	ID               string         `json:"id"`
 	EntryTime        sql.NullString `json:"entry_time"`
 	UserID           string         `json:"user_id"`
 	RequiredTotal    int64          `json:"required_total"`
@@ -44,7 +45,7 @@ type CreateEntryLogRow struct {
 }
 
 func (q *Queries) CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error) {
-	row := q.db.QueryRowContext(ctx, createEntryLog, arg.LogDescription, arg.UserID)
+	row := q.db.QueryRowContext(ctx, createEntryLog, arg.ID, arg.LogDescription, arg.UserID)
 	var i CreateEntryLogRow
 	err := row.Scan(
 		&i.ID,
@@ -66,7 +67,7 @@ LIMIT 1
 `
 
 type GetLastEntryLogByUserRow struct {
-	ID      int64  `json:"id"`
+	ID      string `json:"id"`
 	LogDate string `json:"log_date"`
 }
 
@@ -100,7 +101,7 @@ assistance_logs.user_id,
 `
 
 type UpdateExitLogRow struct {
-	ID               int64          `json:"id"`
+	ID               string         `json:"id"`
 	EntryTime        sql.NullString `json:"entry_time"`
 	ExitTime         sql.NullString `json:"exit_time"`
 	UserID           string         `json:"user_id"`
@@ -108,7 +109,7 @@ type UpdateExitLogRow struct {
 	TotalAccumulated int64          `json:"total_accumulated"`
 }
 
-func (q *Queries) UpdateExitLog(ctx context.Context, id int64) (UpdateExitLogRow, error) {
+func (q *Queries) UpdateExitLog(ctx context.Context, id string) (UpdateExitLogRow, error) {
 	row := q.db.QueryRowContext(ctx, updateExitLog, id)
 	var i UpdateExitLogRow
 	err := row.Scan(
