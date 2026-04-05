@@ -41,7 +41,7 @@ type TakeAttendanceRequest struct {
 func (h *AssistanceLogHandler) Index(c *gin.Context) {
 	c.HTML(
 		http.StatusOK,
-		"users.html",
+		"attendace.html",
 		gin.H{
 			"Title": "Asistencia",
 		},
@@ -65,7 +65,7 @@ func (h *AssistanceLogHandler) Attendance(c *gin.Context) {
 
 	c.HTML(
 		http.StatusOK,
-		"attendace.html",
+		"attendace-info.html",
 		attendace,
 	)
 }

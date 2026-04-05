@@ -119,10 +119,7 @@ func mapExitToAttendaceDTO(exit repository.UpdateExitLogRow) (AttendaceDTO, erro
 func convertUTCToMexTime(utcTimes ...string) ([]string, error) {
 	mexTimes := []string{}
 
-	mexicoZone, err := time.LoadLocation("America/Mexico_City")
-	if err != nil {
-		return mexTimes, nil
-	}
+	mexicoZone := time.FixedZone("CST", -6*60*60)
 
 	for _, t := range utcTimes {
 		entryTimeUTC, err := time.Parse(time.TimeOnly, t)
