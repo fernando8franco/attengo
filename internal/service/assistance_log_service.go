@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"math"
 	"time"
 
 	"github.com/fernando8franco/attengo/internal/apperr"
@@ -32,12 +33,12 @@ func NewAssistanceLogService(db *sql.DB) AssistanceLogService {
 }
 
 type AttendaceDTO struct {
-	ID               string `json:"id"`
-	EntryTime        string `json:"entry_time"`
-	ExitTime         string `json:"exit_time"`
-	RequiredTotal    int    `json:"required_total"`
-	TotalAccumulated int    `json:"total_accumulated"`
-	UserID           string `json:"user_id"`
+	ID               string  `json:"id"`
+	EntryTime        string  `json:"entry_time"`
+	ExitTime         string  `json:"exit_time"`
+	RequiredTotal    float64 `json:"required_total"`
+	TotalAccumulated float64 `json:"total_accumulated"`
+	UserID           string  `json:"user_id"`
 }
 
 func (s *assistanceLogService) TakeAttendance(ctx context.Context, input AssistanceLogInput) (AttendaceDTO, error) {
@@ -93,8 +94,8 @@ func mapEntryToAttendaceDTO(entry repository.CreateEntryLogRow) (AttendaceDTO, e
 	return AttendaceDTO{
 		ID:               entry.ID,
 		EntryTime:        mexTimes[0],
-		RequiredTotal:    int(entry.RequiredTotal),
-		TotalAccumulated: int(entry.TotalAccumulated),
+		RequiredTotal:    minsToHours(int(entry.RequiredTotal)),
+		TotalAccumulated: minsToHours(int(entry.TotalAccumulated)),
 		UserID:           entry.UserID,
 	}, nil
 }
@@ -109,8 +110,8 @@ func mapExitToAttendaceDTO(exit repository.UpdateExitLogRow) (AttendaceDTO, erro
 		ID:               exit.ID,
 		EntryTime:        mexTimes[0],
 		ExitTime:         mexTimes[1],
-		RequiredTotal:    int(exit.RequiredTotal),
-		TotalAccumulated: int(exit.TotalAccumulated),
+		RequiredTotal:    minsToHours(int(exit.RequiredTotal)),
+		TotalAccumulated: minsToHours(int(exit.TotalAccumulated)),
 		UserID:           exit.UserID,
 	}, nil
 }
@@ -133,4 +134,8 @@ func convertUTCToMexTime(utcTimes ...string) ([]string, error) {
 	}
 
 	return mexTimes, nil
+}
+
+func minsToHours(mins int) float64 {
+	return math.Round((float64(mins)/60.0)*100) / 100
 }
