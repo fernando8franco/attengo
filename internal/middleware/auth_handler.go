@@ -47,7 +47,7 @@ func AuthMiddleware(issuer, secret string) gin.HandlerFunc {
 				c.Header("HX-Redirect", "/login")
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
-				c.Redirect(http.StatusFound, "/login")
+				c.Redirect(http.StatusFound, "/")
 				c.Abort()
 			}
 			return
@@ -56,7 +56,7 @@ func AuthMiddleware(issuer, secret string) gin.HandlerFunc {
 		claims, err := auth.ValidateJWT(issuer, secret, token)
 		if err != nil {
 			c.SetCookie("access_token", "", -1, "/", "", false, true)
-			c.Redirect(http.StatusFound, "/login")
+			c.Redirect(http.StatusFound, "/")
 			c.Abort()
 			return
 		}

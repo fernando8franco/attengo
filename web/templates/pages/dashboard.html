@@ -1,8 +1,12 @@
 {{ define "dashboard.html" }}
-    {{ template "base" . }}
+    {{ template "header" . }}
+
+    {{ template "dashboard" . }}
+
+    {{ template "footer" . }}
 {{ end }}
 
-{{ define "content" }}
+{{ define "dashboard" }}
     <h1>DASHBOARD</h1>
     <p>Hola</p>
     <hr />

@@ -1,16 +1,17 @@
 {{ define "attendace.html" }}
-    {{ template "base" . }}
-{{ end }}
+    {{ template "header" . }}
 
-{{ define "content" }}
-    {{ template "form" .}}
+    <h1>Asistencia Servicio/Practicas</h1>
+    {{ template "form-attendance" .}}
     <hr />
     <div id="display-attendace">
 
     </div>
+
+    {{ template "footer" . }}
 {{ end }}
 
-{{ define "form" }}
+{{ define "form-attendance" }}
 <form 
     hx-post="/attendace" 
     hx-target="#display-attendace"

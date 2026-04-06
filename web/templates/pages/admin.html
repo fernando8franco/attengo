@@ -1,17 +1,17 @@
+
 {{ define "setup-admin.html" }}
-    {{ template "base" . }}
+    {{ template "header" . }}
+
+    {{ template "form-admin" .}}
+
+    {{ template "footer" . }}
 {{ end }}
 
-{{ define "content" }}
-    {{ template "form" .}}
-    <hr />
-{{ end }}
-
-{{ define "form" }}
+{{ define "form-admin" }}
 <form hx-post="/setup/admin">
-    <input type="text" name="name" autocomplete="off"/>
-    <input type="email" name="email" autocomplete="off"/>
-    <input type="password" name="password" autocomplete="off"/>
+    Nombre: <input type="text" name="name" autocomplete="off"/>
+    Email: <input type="email" name="email" autocomplete="off"/>
+    Contraseña: <input type="password" name="password" autocomplete="off"/>
     <button type="submit">Crear</button>
 </form>
 {{ end }}
