@@ -10,12 +10,9 @@ import (
 	"github.com/fernando8franco/attengo/internal/repository"
 )
 
-type RefreshTokenInput struct {
-	Token string
-}
-
 type RefreshTokenService interface {
-	CreateAccessToken(ctx context.Context, input RefreshTokenInput) (RefreshTokenResponse, error)
+	CreateAccessToken(ctx context.Context, token string) (RefreshTokenResponse, error)
+	RevokeToken(ctx context.Context, token string) error
 }
 
 type refreshTokenService struct {
@@ -31,11 +28,12 @@ func NewRefreshTokenService(db *sql.DB, cfg *config.Config) RefreshTokenService 
 }
 
 type RefreshTokenResponse struct {
+	UserID      string `json:"user_id"`
 	AccessToken string `json:"access_token"`
 }
 
-func (s *refreshTokenService) CreateAccessToken(ctx context.Context, input RefreshTokenInput) (RefreshTokenResponse, error) {
-	userId, err := s.queries.GetUserIdFromRefreshToken(ctx, input.Token)
+func (s *refreshTokenService) CreateAccessToken(ctx context.Context, token string) (RefreshTokenResponse, error) {
+	userId, err := s.queries.GetUserIdFromRefreshToken(ctx, token)
 	if err != nil {
 		return RefreshTokenResponse{}, apperr.NewUnauthorizedRequest(err.Error())
 	}
@@ -45,5 +43,14 @@ func (s *refreshTokenService) CreateAccessToken(ctx context.Context, input Refre
 		return RefreshTokenResponse{}, err
 	}
 
-	return RefreshTokenResponse{AccessToken: accessToken}, nil
+	return RefreshTokenResponse{UserID: userId, AccessToken: accessToken}, nil
+}
+
+func (s *refreshTokenService) RevokeToken(ctx context.Context, token string) error {
+	err := s.queries.SetRevokedAt(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

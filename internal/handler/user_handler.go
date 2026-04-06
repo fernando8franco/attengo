@@ -83,69 +83,29 @@ func (h *UserHandler) Dashboard(c *gin.Context) {
 	)
 }
 
-func (h *UserHandler) IndexSetUpAdmin(c *gin.Context) {
-	c.HTML(
-		http.StatusOK,
-		"setup-admin.html",
-		gin.H{
-			"Title": "SetUp Admin",
-		},
-	)
-}
+// type LoginRequest struct {
+// 	Email    string `json:"email"  binding:"required,email"`
+// 	Password string `json:"password"  binding:"required"`
+// }
 
-type SetUpAdminRequest struct {
-	Name     string `form:"name"  binding:"required"`
-	Email    string `form:"email"  binding:"required,email"`
-	Password string `form:"password"  binding:"required"`
-}
+// func (h *UserHandler) Login(c *gin.Context) {
+// 	var req LoginRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.Error(apperr.NewBadRequest(err.Error()))
+// 		return
+// 	}
 
-func (h *UserHandler) SetUpAdmin(c *gin.Context) {
-	var req SetUpAdminRequest
-	if err := c.ShouldBind(&req); err != nil {
-		c.Error(apperr.NewBadRequest(err.Error()))
-		return
-	}
+// 	tokens, err := h.UserService.AdminLogin(c.Request.Context(), service.LoginAdminInput{
+// 		Email:    req.Email,
+// 		Password: req.Password,
+// 	})
+// 	if err != nil {
+// 		c.Error(err)
+// 		return
+// 	}
 
-	tokens, err := h.UserService.SetUpAdmin(c.Request.Context(), service.CreateAdminInput{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-	})
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.SetCookie("access_token", tokens.AccessToken, 3600, "/", "", false, true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, 86400*7, "/", "", false, true)
-
-	c.Header("HX-Redirect", "/admin/dashboard")
-	c.Status(http.StatusOK)
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"  binding:"required,email"`
-	Password string `json:"password"  binding:"required"`
-}
-
-func (h *UserHandler) Login(c *gin.Context) {
-	var req LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperr.NewBadRequest(err.Error()))
-		return
-	}
-
-	tokens, err := h.UserService.AdminLogin(c.Request.Context(), service.LoginAdminInput{
-		Email:    req.Email,
-		Password: req.Password,
-	})
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.JSON(http.StatusOK, tokens)
-}
+// 	c.JSON(http.StatusOK, tokens)
+// }
 
 func (h *UserHandler) Logout(c *gin.Context) {
 	refreshToken, err := auth.GetBearerToken(c.Request.Header)

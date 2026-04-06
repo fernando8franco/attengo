@@ -1,16 +1,15 @@
-{{ define "setup-admin.html" }}
+{{ define "login.html" }}
     {{ template "header" . }}
 
-    {{ template "form-admin" .}}
+    {{ template "form-login" .}}
 
     {{ template "footer" . }}
 {{ end }}
 
-{{ define "form-admin" }}
-<form hx-post="/setup/admin">
-    Nombre: <input type="text" name="name" autocomplete="off"/>
+{{ define "form-login" }}
+<form hx-post="/login">
     Email: <input type="email" name="email" autocomplete="off"/>
     Contraseña: <input type="password" name="password" autocomplete="off"/>
-    <button type="submit">Crear</button>
+    <button type="submit">Entrar</button>
 </form>
 {{ end }}

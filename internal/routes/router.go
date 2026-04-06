@@ -56,16 +56,23 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	rtSvc := service.NewRefreshTokenService(conn, cfg)
 	refreshTokenHandler := handler.NewRefreshTokenHandler(rtSvc)
 
+	setupAdminHandler := handler.NewSetUpAdminHandler(uSvc)
+	loginHandler := handler.NewLoginHandler(uSvc, rtSvc)
+
 	r.GET("/", assistanceLogHandler.Index)
 	r.POST("/attendace", assistanceLogHandler.Attendance)
 
-	r.GET("/setup/admin", userHandler.IndexSetUpAdmin)
-	r.POST("/setup/admin", userHandler.SetUpAdmin)
+	r.GET("/setup/admin", setupAdminHandler.IndexSetUpAdmin)
+	r.POST("/setup/admin", setupAdminHandler.SetUpAdmin)
 
-	admin := r.Group("/admin")
-	admin.Use(middleware.AuthMiddleware(cfg.IssuerJWT, cfg.SecretJWT))
+	r.GET("/login", loginHandler.IndexLogin)
+	r.POST("/login", loginHandler.Login)
+	r.GET("/logout", loginHandler.Logout)
+
+	admin := r.Group("/admin/dashboard")
+	admin.Use(middleware.AuthMiddleware(cfg.IssuerJWT, cfg.SecretJWT, rtSvc))
 	{
-		admin.GET("/dashboard", userHandler.Dashboard)
+		admin.GET("/", userHandler.Dashboard)
 	}
 
 	v1 := r.Group("/api/v1")
@@ -98,8 +105,8 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 			attendace.POST("", assistanceLogHandler.TakeAttendance)
 		} */
 
-		v1.POST("/login", userHandler.Login)
-		v1.POST("/logout", userHandler.Logout)
+		// v1.POST("/login", userHandler.Login)
+		// v1.POST("/logout", userHandler.Logout)
 		v1.POST("/refresh", refreshTokenHandler.RefreshAccessToken)
 	}
 

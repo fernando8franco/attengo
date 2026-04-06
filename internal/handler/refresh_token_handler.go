@@ -24,9 +24,7 @@ func (h *RefreshTokenHandler) RefreshAccessToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.RefreshTokenService.CreateAccessToken(c.Request.Context(), service.RefreshTokenInput{
-		Token: refreshToken,
-	})
+	accessToken, err := h.RefreshTokenService.CreateAccessToken(c.Request.Context(), refreshToken)
 	if err != nil {
 		c.Error(err)
 		return
