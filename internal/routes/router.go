@@ -59,6 +59,15 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	r.GET("/", assistanceLogHandler.Index)
 	r.POST("/attendace", assistanceLogHandler.Attendance)
 
+	r.GET("/setup/admin", userHandler.IndexSetUpAdmin)
+	r.POST("/setup/admin", userHandler.SetUpAdmin)
+
+	admin := r.Group("/admin")
+	admin.Use(middleware.AuthMiddleware(cfg.IssuerJWT, cfg.SecretJWT))
+	{
+		admin.GET("/dashboard", userHandler.Dashboard)
+	}
+
 	v1 := r.Group("/api/v1")
 	{
 		requiredHours := v1.Group("/required_hours")
@@ -79,10 +88,10 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 			users.POST("", userHandler.CreateUser)
 		}
 
-		setup := v1.Group("/setup")
+		/* setup := v1.Group("/setup")
 		{
 			setup.POST("/admin", userHandler.SetUpAdmin)
-		}
+		} */
 
 		/* attendace := v1.Group("/attendace")
 		{

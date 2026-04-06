@@ -17,7 +17,7 @@ func NewAssistanceLogHandler(svc service.AssistanceLogService) *AssistanceLogHan
 }
 
 type TakeAttendanceRequest struct {
-	UserPassword string `json:"user_password" form:"user_password" binding:"required"`
+	UserPassword string `form:"user_password" binding:"required"`
 }
 
 /* func (h *AssistanceLogHandler) TakeAttendance(c *gin.Context) {

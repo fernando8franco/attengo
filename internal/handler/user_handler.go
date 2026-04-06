@@ -47,7 +47,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
-type SetUpAdminRequest struct {
+/* type SetUpAdminRequest struct {
 	Name     string `json:"name"  binding:"required"`
 	Email    string `json:"email"  binding:"required,email"`
 	Password string `json:"password"  binding:"required"`
@@ -71,6 +71,56 @@ func (h *UserHandler) SetUpAdmin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, admin)
+} */
+
+func (h *UserHandler) Dashboard(c *gin.Context) {
+	c.HTML(
+		http.StatusOK,
+		"dashboard.html",
+		gin.H{
+			"Title": "Dashboard",
+		},
+	)
+}
+
+func (h *UserHandler) IndexSetUpAdmin(c *gin.Context) {
+	c.HTML(
+		http.StatusOK,
+		"setup-admin.html",
+		gin.H{
+			"Title": "SetUp Admin",
+		},
+	)
+}
+
+type SetUpAdminRequest struct {
+	Name     string `form:"name"  binding:"required"`
+	Email    string `form:"email"  binding:"required,email"`
+	Password string `form:"password"  binding:"required"`
+}
+
+func (h *UserHandler) SetUpAdmin(c *gin.Context) {
+	var req SetUpAdminRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.Error(apperr.NewBadRequest(err.Error()))
+		return
+	}
+
+	tokens, err := h.UserService.SetUpAdmin(c.Request.Context(), service.CreateAdminInput{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.SetCookie("access_token", tokens.AccessToken, 3600, "/", "", false, true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, 86400*7, "/", "", false, true)
+
+	c.Header("HX-Redirect", "/admin/dashboard")
+	c.Status(http.StatusOK)
 }
 
 type LoginRequest struct {
