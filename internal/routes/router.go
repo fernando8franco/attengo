@@ -2,6 +2,9 @@ package routes
 
 import (
 	"database/sql"
+	"html/template"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -39,7 +42,8 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	r.Use(middleware.ErrorHandler())
 
 	r.Static("/static", "./web/static")
-	r.LoadHTMLGlob("web/templates/**/*.html")
+	tmpl := loadTemplates("web/templates")
+	r.SetHTMLTemplate(tmpl)
 
 	rhSvc := service.NewRequiredHourService(conn)
 	requiredHoursHandler := handler.NewRequiredHourHandler(rhSvc)
@@ -48,7 +52,7 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	periodHandler := handler.NewPeriodHandler(pSvc)
 
 	uSvc := service.NewUserService(conn, cfg)
-	userHandler := handler.NewUserHandler(uSvc)
+	userHandler := handler.NewUserHandler(uSvc, tmpl)
 
 	alSvc := service.NewAssistanceLogService(conn)
 	assistanceLogHandler := handler.NewAssistanceLogHandler(alSvc)
@@ -58,6 +62,7 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 
 	setupAdminHandler := handler.NewSetUpAdminHandler(uSvc)
 	loginHandler := handler.NewLoginHandler(uSvc, rtSvc)
+	dashboardHandler := handler.NewDashboardHandler(alSvc)
 
 	r.GET("/", assistanceLogHandler.Index)
 	r.POST("/attendace", assistanceLogHandler.Attendance)
@@ -72,25 +77,26 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	admin := r.Group("/admin/dashboard")
 	admin.Use(middleware.AuthMiddleware(cfg.IssuerJWT, cfg.SecretJWT, rtSvc))
 	{
-		admin.GET("/", userHandler.Dashboard)
+		admin.GET("/", dashboardHandler.Index)
+		admin.GET("/users/stream", userHandler.StreamUserHandler)
 	}
 
 	v1 := r.Group("/api/v1")
 	{
 		requiredHours := v1.Group("/required_hours")
-		requiredHours.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
+		// requiredHours.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
 		{
 			requiredHours.POST("", requiredHoursHandler.CreateRequiredHour)
 		}
 
 		periods := v1.Group("/periods")
-		periods.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
+		// periods.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
 		{
 			periods.POST("", periodHandler.CreatePeriod)
 		}
 
 		users := v1.Group("/users")
-		users.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
+		// users.Use(middleware.AuthRequired(cfg.IssuerJWT, cfg.SecretJWT))
 		{
 			users.POST("", userHandler.CreateUser)
 		}
@@ -115,4 +121,28 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	}
 
 	return r
+}
+
+func loadTemplates(dir string) *template.Template {
+	tmpl := template.New("")
+
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// If it's an HTML file, parse it into our template group
+		if !info.IsDir() && strings.HasSuffix(path, ".html") {
+			_, err = tmpl.ParseFiles(path)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic("Failed to parse templates: " + err.Error())
+	}
+
+	return tmpl
 }

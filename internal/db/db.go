@@ -19,13 +19,5 @@ func Connect(name string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// if err := goose.SetDialect("sqlite3"); err != nil {
-	// 	return nil, err
-	// }
-
-	// if err := goose.Up(conn, "db/migrations"); err != nil {
-	// 	return nil, err
-	// }
-
 	return conn, nil
 }

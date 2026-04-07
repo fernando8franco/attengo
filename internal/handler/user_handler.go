@@ -1,20 +1,26 @@
 package handler
 
 import (
+	"bytes"
+	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/fernando8franco/attengo/internal/apperr"
-	"github.com/fernando8franco/attengo/internal/auth"
 	"github.com/fernando8franco/attengo/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
 	UserService service.UserService
+	Templates   *template.Template
 }
 
-func NewUserHandler(svc service.UserService) *UserHandler {
-	return &UserHandler{UserService: svc}
+func NewUserHandler(svc service.UserService, tmpl *template.Template) *UserHandler {
+	return &UserHandler{
+		UserService: svc,
+		Templates:   tmpl,
+	}
 }
 
 type CreateUserRequest struct {
@@ -73,16 +79,6 @@ func (h *UserHandler) SetUpAdmin(c *gin.Context) {
 	c.JSON(http.StatusCreated, admin)
 } */
 
-func (h *UserHandler) Dashboard(c *gin.Context) {
-	c.HTML(
-		http.StatusOK,
-		"dashboard.html",
-		gin.H{
-			"Title": "Dashboard",
-		},
-	)
-}
-
 // type LoginRequest struct {
 // 	Email    string `json:"email"  binding:"required,email"`
 // 	Password string `json:"password"  binding:"required"`
@@ -107,18 +103,60 @@ func (h *UserHandler) Dashboard(c *gin.Context) {
 // 	c.JSON(http.StatusOK, tokens)
 // }
 
-func (h *UserHandler) Logout(c *gin.Context) {
-	refreshToken, err := auth.GetBearerToken(c.Request.Header)
-	if err != nil {
-		c.Error(apperr.NewBadRequest("Couldn't find the refresh token"))
+// func (h *UserHandler) Logout(c *gin.Context) {
+// 	refreshToken, err := auth.GetBearerToken(c.Request.Header)
+// 	if err != nil {
+// 		c.Error(apperr.NewBadRequest("Couldn't find the refresh token"))
+// 		return
+// 	}
+
+// 	err = h.UserService.AdminLogout(c.Request.Context(), refreshToken)
+// 	if err != nil {
+// 		c.Error(err)
+// 		return
+// 	}
+
+// 	c.Status(http.StatusNoContent)
+// }
+
+func (h *UserHandler) StreamUserHandler(c *gin.Context) {
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+
+	clientGone := c.Request.Context().Done()
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	sendUsersUpdate := func() bool {
+		users, err := h.UserService.GetActiveUsers(c.Request.Context())
+		if err != nil {
+			return false
+		}
+
+		var buf bytes.Buffer
+		err = h.Templates.ExecuteTemplate(&buf, "view-users", gin.H{"Users": users})
+		if err != nil {
+			return false
+		}
+
+		c.SSEvent("message", buf.String())
+		c.Writer.Flush()
+		return true
+	}
+
+	if ok := sendUsersUpdate(); !ok {
 		return
 	}
 
-	err = h.UserService.AdminLogout(c.Request.Context(), refreshToken)
-	if err != nil {
-		c.Error(err)
-		return
+	for {
+		select {
+		case <-clientGone:
+			return
+		case <-ticker.C:
+			if ok := sendUsersUpdate(); !ok {
+				return
+			}
+		}
 	}
-
-	c.Status(http.StatusNoContent)
 }

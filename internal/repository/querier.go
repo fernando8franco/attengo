@@ -18,6 +18,7 @@ type Querier interface {
 	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
 	ExistsAdmin(ctx context.Context) (bool, error)
+	GetActiveUsers(ctx context.Context) ([]GetActiveUsersRow, error)
 	GetAdminIDAndPasswordByEmail(ctx context.Context, email string) (GetAdminIDAndPasswordByEmailRow, error)
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)

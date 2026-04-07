@@ -10,4 +10,31 @@
     <h1>DASHBOARD</h1>
     <a href="/logout">Salir</a>
     <hr />
+    {{ template "active-users-table" . }}
+{{ end }}
+
+{{ define "active-users-table"}}
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Entrada</th>
+        </tr>
+    </thead>
+    <tbody hx-ext="sse"
+            sse-connect="users/stream"
+            sse-swap="message"
+            hx-swap="innerHTML">
+        {{ template "view-users" . }}
+    </tbody>
+</table>
+{{ end }}
+
+{{ define "view-users" }}
+    {{ range .Users }}
+        <tr>
+            <td>{{ .Name }}</td>
+            <td>{{ .EntryTime }}</td>
+        </tr>
+    {{end}}
 {{ end }}

@@ -81,6 +81,46 @@ func (q *Queries) ExistsAdmin(ctx context.Context) (bool, error) {
 	return column_1, err
 }
 
+const getActiveUsers = `-- name: GetActiveUsers :many
+SELECT DISTINCT users.id, users.name, CAST(time(assistance_logs.entry_time, '-6 hours') AS TEXT) AS entry_time
+FROM users
+INNER JOIN assistance_logs ON users.id = assistance_logs.user_id
+WHERE users.is_admin = 0 
+AND users.deleted_at IS NULL
+AND assistance_logs.entry_time IS NOT NULL
+AND assistance_logs.exit_time IS NULL
+AND assistance_logs.log_date = date('now', '-6 hours')
+`
+
+type GetActiveUsersRow struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	EntryTime string `json:"entry_time"`
+}
+
+func (q *Queries) GetActiveUsers(ctx context.Context) ([]GetActiveUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getActiveUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetActiveUsersRow
+	for rows.Next() {
+		var i GetActiveUsersRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.EntryTime); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAdminIDAndPasswordByEmail = `-- name: GetAdminIDAndPasswordByEmail :one
 SELECT id, password
 FROM users
