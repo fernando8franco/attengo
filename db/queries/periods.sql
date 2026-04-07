@@ -9,3 +9,6 @@ exit_date;
 
 -- name: DeletePeriods :exec
 DELETE FROM periods;
+
+-- name: GetPeriods :many
+SELECT id, name FROM periods;

@@ -23,6 +23,24 @@ func NewUserHandler(svc service.UserService, tmpl *template.Template) *UserHandl
 	}
 }
 
+func (h *UserHandler) Index(c *gin.Context) {
+	hours, periods, err := h.UserService.GetHoursAndPeriods(c.Request.Context())
+	if err != nil {
+		c.Error(apperr.NewBadRequest(err.Error()))
+		return
+	}
+
+	c.HTML(
+		http.StatusOK,
+		"users.html",
+		gin.H{
+			"Title":     "Usuarios",
+			"HoursType": hours,
+			"Periods":   periods,
+		},
+	)
+}
+
 type CreateUserRequest struct {
 	Name           string `json:"name"  binding:"required"`
 	Email          string `json:"email"  binding:"required,email"`

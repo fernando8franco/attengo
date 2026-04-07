@@ -44,3 +44,35 @@ func (q *Queries) DeleteRequiredHours(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deleteRequiredHours)
 	return err
 }
+
+const getRequiredHours = `-- name: GetRequiredHours :many
+SELECT id, type FROM required_hours
+`
+
+type GetRequiredHoursRow struct {
+	ID   int64  `json:"id"`
+	Type string `json:"type"`
+}
+
+func (q *Queries) GetRequiredHours(ctx context.Context) ([]GetRequiredHoursRow, error) {
+	rows, err := q.db.QueryContext(ctx, getRequiredHours)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRequiredHoursRow
+	for rows.Next() {
+		var i GetRequiredHoursRow
+		if err := rows.Scan(&i.ID, &i.Type); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

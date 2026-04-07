@@ -8,3 +8,6 @@ total_minutes;
 
 -- name: DeleteRequiredHours :exec
 DELETE FROM required_hours;
+
+-- name: GetRequiredHours :many
+SELECT id, type FROM required_hours;

@@ -1,0 +1,45 @@
+{{ define "users.html" }}
+    {{ template "header" . }}
+
+    {{ template "users-body" . }}
+
+    {{ template "footer" . }}
+{{ end }}
+
+{{ define "users-body" }}
+    <h1>Usuarios</h1>
+    <hr />
+    <a href="/admin/dashboard">Dashboard</a>
+    <hr />
+    {{ template "users-form" . }}
+    <hr />
+    {{ template "users-info" . }}
+{{ end }}
+
+{{ define "users-form" }}
+<form hx-post="/login">
+    Nombre: <input type="text" name="name" autocomplete="off"/>
+    Email: <input type="email" name="email" autocomplete="off"/>
+    Tipo: 
+    <select name="type">
+        <option value="" disabled selected>Selecciona...</option>
+        {{ range .HoursType }}
+            <option value="{{ .ID }}">{{ .Type }}</option>
+        {{ end }}
+    </select>
+    Periodo: 
+    <select name="period">
+        <option value="" disabled selected>Selecciona...</option>
+        {{ range .Periods }}
+            <option value="{{ .ID }}">{{ .Name }}</option>
+        {{ end }}
+    </select>
+    <button type="submit">Entrar</button>
+</form>
+{{ end }}
+
+{{ define "select" }}
+{{end}}
+
+{{ define "users-info" }}
+{{ end }}

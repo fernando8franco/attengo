@@ -21,6 +21,8 @@ type Querier interface {
 	GetActiveUsers(ctx context.Context) ([]GetActiveUsersRow, error)
 	GetAdminIDAndPasswordByEmail(ctx context.Context, email string) (GetAdminIDAndPasswordByEmailRow, error)
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
+	GetPeriods(ctx context.Context) ([]GetPeriodsRow, error)
+	GetRequiredHours(ctx context.Context) ([]GetRequiredHoursRow, error)
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)
 	GetUsersPasswords(ctx context.Context) ([]string, error)
 	SetRevokedAt(ctx context.Context, token string) error

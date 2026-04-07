@@ -52,3 +52,35 @@ func (q *Queries) DeletePeriods(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deletePeriods)
 	return err
 }
+
+const getPeriods = `-- name: GetPeriods :many
+SELECT id, name FROM periods
+`
+
+type GetPeriodsRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) GetPeriods(ctx context.Context) ([]GetPeriodsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPeriods)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPeriodsRow
+	for rows.Next() {
+		var i GetPeriodsRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

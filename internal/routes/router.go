@@ -79,6 +79,8 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 	{
 		admin.GET("/", dashboardHandler.Index)
 		admin.GET("/users/stream", userHandler.StreamUserHandler)
+
+		admin.GET("/users", userHandler.Index)
 	}
 
 	v1 := r.Group("/api/v1")

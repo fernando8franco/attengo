@@ -47,6 +47,7 @@ type UserService interface {
 	AdminLogin(ctx context.Context, input LoginAdminInput) (TokensReponse, error)
 	AdminLogout(ctx context.Context, token string) error
 	GetActiveUsers(ctx context.Context) ([]repository.GetActiveUsersRow, error)
+	GetHoursAndPeriods(ctx context.Context) ([]repository.GetRequiredHoursRow, []repository.GetPeriodsRow, error)
 }
 
 type userService struct {
@@ -208,6 +209,20 @@ func (s *userService) GetActiveUsers(ctx context.Context) ([]repository.GetActiv
 	}
 
 	return users, nil
+}
+
+func (s *userService) GetHoursAndPeriods(ctx context.Context) ([]repository.GetRequiredHoursRow, []repository.GetPeriodsRow, error) {
+	hours, err := s.queries.GetRequiredHours(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	periods, err := s.queries.GetPeriods(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return hours, periods, nil
 }
 
 func passwordGenerator(length int) string {
