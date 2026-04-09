@@ -50,12 +50,11 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 
 	// pSvc := service.NewPeriodService(conn)
 	// periodHandler := handler.NewPeriodHandler(pSvc)
-
-	uSvc := service.NewUserService(conn, cfg)
-	userHandler := handler.NewUserHandler(uSvc, tmpl)
-
 	alSvc := service.NewAssistanceLogService(conn)
 	assistanceLogHandler := handler.NewAssistanceLogHandler(alSvc)
+
+	uSvc := service.NewUserService(conn, cfg)
+	userHandler := handler.NewUserHandler(uSvc, alSvc, tmpl)
 
 	rtSvc := service.NewRefreshTokenService(conn, cfg)
 	// refreshTokenHandler := handler.NewRefreshTokenHandler(rtSvc)
@@ -82,6 +81,8 @@ func SetupRouter(conn *sql.DB, cfg *config.Config) *gin.Engine {
 
 		admin.GET("/users", userHandler.Index)
 		admin.POST("/users", userHandler.CreateUser)
+
+		admin.POST("/assistance-logs-minutes", userHandler.AddManualHours)
 	}
 
 	if cfg.Env == "development" {

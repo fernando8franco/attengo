@@ -18,6 +18,8 @@
     <hr />
     <h3>Agregar horas</h3>
     {{ template "add-hours-form" . }}
+    <hr />
+    <div id="hours-text"></div>
 {{ end }}
 
 {{ define "users-form" }}
@@ -42,7 +44,7 @@
             <option value="{{ .ID }}">{{ .Name }}</option>
         {{ end }}
     </select>
-    <button type="submit">Entrar</button>
+    <button type="submit">Crear</button>
 </form>
 {{ end }}
 
@@ -79,16 +81,22 @@
 
 {{ define "add-hours-form" }}
 <form 
-hx-post="" 
-hx-target="#"
+hx-post="/admin/dashboard/assistance-logs-minutes" 
+hx-target="#hours-text"
 hx-on::after-request="if(event.detail.successful) this.reset()">
-    <select name="required_hour_id">
+    <select name="user_id" required>
         <option value="" disabled selected>Selecciona...</option>
         {{ range .Users }}
             <option value="{{ .ID }}">{{ .Name }}</option>
         {{ end }}
     </select>
-    Descripción: <input type="text" name="description"/>
-    Horas: <input type="number" name="hours" autocomplete="off"/>
+    Descripción: <input type="text" name="description" required/>
+    Horas: <input type="number" name="hours" autocomplete="off" required/>
+    <button type="submit">Agregar</button>
 </form>
+{{ end }}
+
+{{ define "hours-added-text" }}
+<p>Se han agregado {{ .AddedHours }} horas al usuario {{ .UserName }}</p>
+<p>Ahora tiene {{ .TotalAccumulated }} de {{ .RequiredTotal }} horas</p>
 {{ end }}

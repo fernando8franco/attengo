@@ -12,14 +12,16 @@ import (
 )
 
 type UserHandler struct {
-	UserService service.UserService
-	Templates   *template.Template
+	UserService          service.UserService
+	AssistanceLogService service.AssistanceLogService
+	Templates            *template.Template
 }
 
-func NewUserHandler(svc service.UserService, tmpl *template.Template) *UserHandler {
+func NewUserHandler(svc service.UserService, alSvc service.AssistanceLogService, tmpl *template.Template) *UserHandler {
 	return &UserHandler{
-		UserService: svc,
-		Templates:   tmpl,
+		UserService:          svc,
+		AssistanceLogService: alSvc,
+		Templates:            tmpl,
 	}
 }
 
@@ -72,6 +74,32 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		"users-info-row",
 		user,
 	)
+}
+
+type ManualHoursRequest struct {
+	UserID      string `form:"user_id"  binding:"required"`
+	Description string `form:"description"  binding:"required"`
+	Hours       int    `form:"hours"  binding:"required,numeric"`
+}
+
+func (h *UserHandler) AddManualHours(c *gin.Context) {
+	var req ManualHoursRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.Error(apperr.NewBadRequest(err.Error()))
+		return
+	}
+
+	user, err := h.AssistanceLogService.AddManualMinutes(c.Request.Context(), service.ManualMinutesInput{
+		UserID:      req.UserID,
+		Description: req.Description,
+		ManualHours: req.Hours,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.HTML(http.StatusOK, "hours-added-text", user)
 }
 
 func (h *UserHandler) StreamUserHandler(c *gin.Context) {

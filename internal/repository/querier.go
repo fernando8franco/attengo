@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	AddManualMinutes(ctx context.Context, arg AddManualMinutesParams) (AddManualMinutesRow, error)
 	CreateAdmin(ctx context.Context, arg CreateAdminParams) (string, error)
 	CreateEntryLog(ctx context.Context, arg CreateEntryLogParams) (CreateEntryLogRow, error)
 	CreatePeriod(ctx context.Context, arg CreatePeriodParams) (CreatePeriodRow, error)

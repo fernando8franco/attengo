@@ -21,6 +21,7 @@ type AssistanceLogInput struct {
 
 type AssistanceLogService interface {
 	TakeAttendance(ctx context.Context, input AssistanceLogInput) (AttendaceDTO, error)
+	AddManualMinutes(ctx context.Context, input ManualMinutesInput) (ManualMinutesDTO, error)
 }
 
 type assistanceLogService struct {
@@ -82,6 +83,40 @@ func (s *assistanceLogService) TakeAttendance(ctx context.Context, input Assista
 		return AttendaceDTO{}, err
 	}
 	return exit, nil
+}
+
+type ManualMinutesInput struct {
+	UserID      string
+	Description string
+	ManualHours int
+}
+
+type ManualMinutesDTO struct {
+	UserName         string
+	AddedHours       int
+	RequiredTotal    float64
+	TotalAccumulated float64
+}
+
+func (s *assistanceLogService) AddManualMinutes(ctx context.Context, input ManualMinutesInput) (ManualMinutesDTO, error) {
+	manualMinutes := input.ManualHours * 60
+
+	userInfo, err := s.queries.AddManualMinutes(ctx, repository.AddManualMinutesParams{
+		ID:             uuid.NewString(),
+		LogDescription: input.Description,
+		UserID:         input.UserID,
+		ManualMinutes:  int64(manualMinutes),
+	})
+	if err != nil {
+		return ManualMinutesDTO{}, err
+	}
+
+	return ManualMinutesDTO{
+		UserName:         userInfo.Name,
+		AddedHours:       int(userInfo.ManualMinutes) / 60,
+		RequiredTotal:    minsToHours(int(userInfo.RequiredTotal)),
+		TotalAccumulated: minsToHours(int(userInfo.TotalAccumulated)),
+	}, nil
 }
 
 func mapEntryToAttendaceDTO(entry repository.CreateEntryLogRow) (AttendaceDTO, error) {

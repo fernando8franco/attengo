@@ -10,6 +10,60 @@ import (
 	"database/sql"
 )
 
+const addManualMinutes = `-- name: AddManualMinutes :one
+INSERT INTO assistance_logs (id, log_description, user_id, manual_minutes, entry_time) 
+values (?, ?, ?, ?, NULL)
+RETURNING 
+manual_minutes,
+(
+    SELECT name
+    FROM users u  
+    WHERE u.id = assistance_logs.user_id
+),
+(
+    SELECT rh.total_minutes AS required_total
+    FROM users u 
+    JOIN required_hours rh ON u.required_hour_id = rh.id 
+    WHERE u.id = assistance_logs.user_id
+),
+(
+    SELECT CAST(SUM(total_daily_minutes) AS BIGINT) AS total_accumulated
+    FROM assistance_logs al 
+    WHERE al.user_id = assistance_logs.user_id
+)
+`
+
+type AddManualMinutesParams struct {
+	ID             string `json:"id"`
+	LogDescription string `json:"log_description"`
+	UserID         string `json:"user_id"`
+	ManualMinutes  int64  `json:"manual_minutes"`
+}
+
+type AddManualMinutesRow struct {
+	ManualMinutes    int64  `json:"manual_minutes"`
+	Name             string `json:"name"`
+	RequiredTotal    int64  `json:"required_total"`
+	TotalAccumulated int64  `json:"total_accumulated"`
+}
+
+func (q *Queries) AddManualMinutes(ctx context.Context, arg AddManualMinutesParams) (AddManualMinutesRow, error) {
+	row := q.db.QueryRowContext(ctx, addManualMinutes,
+		arg.ID,
+		arg.LogDescription,
+		arg.UserID,
+		arg.ManualMinutes,
+	)
+	var i AddManualMinutesRow
+	err := row.Scan(
+		&i.ManualMinutes,
+		&i.Name,
+		&i.RequiredTotal,
+		&i.TotalAccumulated,
+	)
+	return i, err
+}
+
 const createEntryLog = `-- name: CreateEntryLog :one
 INSERT INTO assistance_logs (id, log_description, user_id) 
 VALUES (?, ?, ?)
@@ -61,6 +115,7 @@ const getLastEntryLogByUser = `-- name: GetLastEntryLogByUser :one
 SELECT id, log_date
 FROM assistance_logs
 WHERE user_id = ?
+AND entry_time IS NOT NULL
 AND exit_time IS NULL
 ORDER BY log_date DESC
 LIMIT 1
