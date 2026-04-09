@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"math/rand"
 	"slices"
 	"strings"
@@ -42,12 +41,12 @@ type LoginAdminInput struct {
 }
 
 type UserService interface {
-	CreateUser(ctx context.Context, input CreateUserInput) (string, error)
+	CreateUser(ctx context.Context, input CreateUserInput) (NotAdminInfo, error)
 	SetUpAdmin(ctx context.Context, input CreateAdminInput) (TokensReponse, error)
 	AdminLogin(ctx context.Context, input LoginAdminInput) (TokensReponse, error)
 	AdminLogout(ctx context.Context, token string) error
 	GetActiveUsers(ctx context.Context) ([]repository.GetActiveUsersRow, error)
-	GetHoursAndPeriods(ctx context.Context) ([]repository.GetRequiredHoursRow, []repository.GetPeriodsRow, error)
+	GetHoursPeriodsAndUsers(ctx context.Context) ([]repository.GetRequiredHoursRow, []repository.GetPeriodsRow, []NotAdminInfo, error)
 }
 
 type userService struct {
@@ -62,10 +61,21 @@ func NewUserService(db *sql.DB, cfg *config.Config) UserService {
 	}
 }
 
-func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (string, error) {
+type NotAdminInfo struct {
+	ID         string
+	Name       string
+	Email      string
+	Period     string
+	Type       string
+	Hours      int64
+	TotalHours float64
+	Password   string
+}
+
+func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (NotAdminInfo, error) {
 	passwords, err := s.queries.GetUsersPasswords(ctx)
 	if err != nil {
-		return "", err
+		return NotAdminInfo{}, err
 	}
 
 	input.Name = strings.TrimSpace(input.Name)
@@ -76,11 +86,11 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (st
 		password = passwordGenerator(PasswordLength)
 		attemps++
 		if attemps == MaxPasswordAttemps {
-			return "", errors.New("Max passwords attemps")
+			return NotAdminInfo{}, errors.New("Max passwords attemps")
 		}
 	}
 
-	userID, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
+	user, err := s.queries.CreateUser(ctx, repository.CreateUserParams{
 		ID:       uuid.NewString(),
 		Name:     input.Name,
 		Email:    input.Email,
@@ -98,12 +108,21 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (st
 		if IsUniqueConstraintError(err) {
 			err = apperr.NewBadRequest(err.Error())
 		}
-		return "", err
+		return NotAdminInfo{}, err
 	}
 
-	locationURL := fmt.Sprintf("/%s/%s", UsersString, userID)
-
-	return locationURL, nil
+	hours := int64(minsToHours(int(user.Hours)))
+	totalHours := minsToHours(int(user.TotalHours))
+	return NotAdminInfo{
+		ID:         user.ID,
+		Name:       user.Name,
+		Email:      user.Email,
+		Period:     user.Period,
+		Type:       user.Type,
+		Hours:      hours,
+		TotalHours: totalHours,
+		Password:   user.Password,
+	}, nil
 }
 
 type TokensReponse struct {
@@ -211,18 +230,40 @@ func (s *userService) GetActiveUsers(ctx context.Context) ([]repository.GetActiv
 	return users, nil
 }
 
-func (s *userService) GetHoursAndPeriods(ctx context.Context) ([]repository.GetRequiredHoursRow, []repository.GetPeriodsRow, error) {
+func (s *userService) GetHoursPeriodsAndUsers(ctx context.Context) ([]repository.GetRequiredHoursRow, []repository.GetPeriodsRow, []NotAdminInfo, error) {
 	hours, err := s.queries.GetRequiredHours(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	periods, err := s.queries.GetPeriods(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	return hours, periods, nil
+	users, err := s.queries.GetNotAdminUsers(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	usersDTO := []NotAdminInfo{}
+
+	for _, user := range users {
+		hours := int64(minsToHours(int(user.Hours)))
+		totalHours := minsToHours(int(user.TotalHours))
+
+		usersDTO = append(usersDTO, NotAdminInfo{
+			ID:         user.ID,
+			Name:       user.Name,
+			Email:      user.Email,
+			Period:     user.Period,
+			Type:       user.Type,
+			Hours:      hours,
+			TotalHours: totalHours,
+			Password:   user.Password,
+		})
+	}
+
+	return hours, periods, usersDTO, nil
 }
 
 func passwordGenerator(length int) string {

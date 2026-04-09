@@ -24,7 +24,7 @@ func NewUserHandler(svc service.UserService, tmpl *template.Template) *UserHandl
 }
 
 func (h *UserHandler) Index(c *gin.Context) {
-	hours, periods, err := h.UserService.GetHoursAndPeriods(c.Request.Context())
+	hours, periods, users, err := h.UserService.GetHoursPeriodsAndUsers(c.Request.Context())
 	if err != nil {
 		c.Error(apperr.NewBadRequest(err.Error()))
 		return
@@ -37,25 +37,26 @@ func (h *UserHandler) Index(c *gin.Context) {
 			"Title":     "Usuarios",
 			"HoursType": hours,
 			"Periods":   periods,
+			"Users":     users,
 		},
 	)
 }
 
 type CreateUserRequest struct {
-	Name           string `json:"name"  binding:"required"`
-	Email          string `json:"email"  binding:"required,email"`
-	RequiredHourID int    `json:"required_hour_id"  binding:"required,numeric"`
-	PeriodID       int    `json:"period_id"  binding:"required,numeric"`
+	Name           string `form:"name"  binding:"required"`
+	Email          string `form:"email"  binding:"required,email"`
+	RequiredHourID int    `form:"required_hour_id"  binding:"required,numeric"`
+	PeriodID       int    `form:"period_id"  binding:"required,numeric"`
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req CreateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		c.Error(apperr.NewBadRequest(err.Error()))
 		return
 	}
 
-	url, err := h.UserService.CreateUser(c.Request.Context(), service.CreateUserInput{
+	user, err := h.UserService.CreateUser(c.Request.Context(), service.CreateUserInput{
 		Name:           req.Name,
 		Email:          req.Email,
 		RequiredHourID: req.RequiredHourID,
@@ -66,76 +67,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.Header("Location", url)
-
-	c.Status(http.StatusCreated)
+	c.HTML(
+		http.StatusOK,
+		"users-info-row",
+		user,
+	)
 }
-
-/* type SetUpAdminRequest struct {
-	Name     string `json:"name"  binding:"required"`
-	Email    string `json:"email"  binding:"required,email"`
-	Password string `json:"password"  binding:"required"`
-}
-
-func (h *UserHandler) SetUpAdmin(c *gin.Context) {
-	var req SetUpAdminRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperr.NewBadRequest(err.Error()))
-		return
-	}
-
-	admin, err := h.UserService.SetUpAdmin(c.Request.Context(), service.CreateAdminInput{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-	})
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.JSON(http.StatusCreated, admin)
-} */
-
-// type LoginRequest struct {
-// 	Email    string `json:"email"  binding:"required,email"`
-// 	Password string `json:"password"  binding:"required"`
-// }
-
-// func (h *UserHandler) Login(c *gin.Context) {
-// 	var req LoginRequest
-// 	if err := c.ShouldBindJSON(&req); err != nil {
-// 		c.Error(apperr.NewBadRequest(err.Error()))
-// 		return
-// 	}
-
-// 	tokens, err := h.UserService.AdminLogin(c.Request.Context(), service.LoginAdminInput{
-// 		Email:    req.Email,
-// 		Password: req.Password,
-// 	})
-// 	if err != nil {
-// 		c.Error(err)
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, tokens)
-// }
-
-// func (h *UserHandler) Logout(c *gin.Context) {
-// 	refreshToken, err := auth.GetBearerToken(c.Request.Header)
-// 	if err != nil {
-// 		c.Error(apperr.NewBadRequest("Couldn't find the refresh token"))
-// 		return
-// 	}
-
-// 	err = h.UserService.AdminLogout(c.Request.Context(), refreshToken)
-// 	if err != nil {
-// 		c.Error(err)
-// 		return
-// 	}
-
-// 	c.Status(http.StatusNoContent)
-// }
 
 func (h *UserHandler) StreamUserHandler(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")

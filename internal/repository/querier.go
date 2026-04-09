@@ -14,13 +14,14 @@ type Querier interface {
 	CreatePeriod(ctx context.Context, arg CreatePeriodParams) (CreatePeriodRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateRequiredHour(ctx context.Context, arg CreateRequiredHourParams) (CreateRequiredHourRow, error)
-	CreateUser(ctx context.Context, arg CreateUserParams) (string, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeletePeriods(ctx context.Context) error
 	DeleteRequiredHours(ctx context.Context) error
 	ExistsAdmin(ctx context.Context) (bool, error)
 	GetActiveUsers(ctx context.Context) ([]GetActiveUsersRow, error)
 	GetAdminIDAndPasswordByEmail(ctx context.Context, email string) (GetAdminIDAndPasswordByEmailRow, error)
 	GetLastEntryLogByUser(ctx context.Context, userID string) (GetLastEntryLogByUserRow, error)
+	GetNotAdminUsers(ctx context.Context) ([]GetNotAdminUsersRow, error)
 	GetPeriods(ctx context.Context) ([]GetPeriodsRow, error)
 	GetRequiredHours(ctx context.Context) ([]GetRequiredHoursRow, error)
 	GetUserIdFromRefreshToken(ctx context.Context, token string) (string, error)

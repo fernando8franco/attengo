@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"math"
 	"time"
 
 	"github.com/fernando8franco/attengo/internal/apperr"
@@ -131,8 +130,4 @@ func convertUTCToMexTime(utcTimes ...string) ([]string, error) {
 	}
 
 	return mexTimes, nil
-}
-
-func minsToHours(mins int) float64 {
-	return math.Round((float64(mins)/60.0)*100) / 100
 }

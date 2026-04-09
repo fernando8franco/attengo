@@ -11,24 +11,32 @@
     <hr />
     <a href="/admin/dashboard">Dashboard</a>
     <hr />
+    <h3>Crear Usuario</h3>
     {{ template "users-form" . }}
     <hr />
     {{ template "users-info" . }}
+    <hr />
+    <h3>Agregar horas</h3>
+    {{ template "add-hours-form" . }}
 {{ end }}
 
 {{ define "users-form" }}
-<form hx-post="/login">
+<form 
+    hx-post="/admin/dashboard/users" 
+    hx-target="#users-table-body" 
+    hx-swap="beforeend" 
+    hx-on::after-request="if(event.detail.successful) this.reset()">
     Nombre: <input type="text" name="name" autocomplete="off"/>
     Email: <input type="email" name="email" autocomplete="off"/>
     Tipo: 
-    <select name="type">
+    <select name="required_hour_id">
         <option value="" disabled selected>Selecciona...</option>
         {{ range .HoursType }}
             <option value="{{ .ID }}">{{ .Type }}</option>
         {{ end }}
     </select>
     Periodo: 
-    <select name="period">
+    <select name="period_id">
         <option value="" disabled selected>Selecciona...</option>
         {{ range .Periods }}
             <option value="{{ .ID }}">{{ .Name }}</option>
@@ -38,8 +46,49 @@
 </form>
 {{ end }}
 
-{{ define "select" }}
-{{end}}
-
 {{ define "users-info" }}
+<table>
+    <thead>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Periodo</th>
+        <th>Tipo</th>
+        <th>Horas Requeridas</th>
+        <th>Horas Totales</th>
+        <th>Contraseña</th>
+    </thead>
+    <tbody id="users-table-body">
+        {{ range .Users }}
+            {{ template "users-info-row" .}}
+        {{ end }}
+    </tbody>
+</table>
+{{ end }}
+
+{{ define "users-info-row" }}
+<tr>
+    <td>{{ .Name }}</td>
+    <td>{{ .Email }}</td>
+    <td>{{ .Period }}</td>
+    <td>{{ .Type }}</td>
+    <td>{{ .Hours }}</td>
+    <td>{{ .TotalHours }}</td>
+    <td>{{ .Password }}</td>
+</tr>
+{{ end }}
+
+{{ define "add-hours-form" }}
+<form 
+hx-post="" 
+hx-target="#"
+hx-on::after-request="if(event.detail.successful) this.reset()">
+    <select name="required_hour_id">
+        <option value="" disabled selected>Selecciona...</option>
+        {{ range .Users }}
+            <option value="{{ .ID }}">{{ .Name }}</option>
+        {{ end }}
+    </select>
+    Descripción: <input type="text" name="description"/>
+    Horas: <input type="number" name="hours" autocomplete="off"/>
+</form>
 {{ end }}

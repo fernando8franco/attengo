@@ -40,7 +40,30 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, name, email, password, required_hour_id, period_id) 
 VALUES (?, ?, ?, ?, ?, ?)
 RETURNING 
-id
+users.id,
+users.name,
+users.email,
+users.password,
+(
+  SELECT required_hours.type
+  FROM required_hours
+  WHERE users.required_hour_id = required_hours.id
+),
+(
+  SELECT required_hours.total_minutes AS hours
+  FROM required_hours
+  WHERE users.required_hour_id = required_hours.id
+),
+(
+  SELECT periods.name AS period
+  FROM periods
+  WHERE users.period_id = periods.id
+),
+(
+  SELECT CAST(COALESCE(SUM(total_daily_minutes), 0) AS BIGINT) AS total_hours
+  FROM assistance_logs
+  WHERE users.id = assistance_logs.user_id
+)
 `
 
 type CreateUserParams struct {
@@ -52,7 +75,18 @@ type CreateUserParams struct {
 	PeriodID       sql.NullInt64 `json:"period_id"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (string, error) {
+type CreateUserRow struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	Type       string `json:"type"`
+	Hours      int64  `json:"hours"`
+	Period     string `json:"period"`
+	TotalHours int64  `json:"total_hours"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ID,
 		arg.Name,
@@ -61,9 +95,18 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (string,
 		arg.RequiredHourID,
 		arg.PeriodID,
 	)
-	var id string
-	err := row.Scan(&id)
-	return id, err
+	var i CreateUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.Type,
+		&i.Hours,
+		&i.Period,
+		&i.TotalHours,
+	)
+	return i, err
 }
 
 const existsAdmin = `-- name: ExistsAdmin :one
@@ -139,6 +182,75 @@ func (q *Queries) GetAdminIDAndPasswordByEmail(ctx context.Context, email string
 	var i GetAdminIDAndPasswordByEmailRow
 	err := row.Scan(&i.ID, &i.Password)
 	return i, err
+}
+
+const getNotAdminUsers = `-- name: GetNotAdminUsers :many
+SELECT 
+    users.id, 
+    users.name, 
+    users.email, 
+    periods.name AS period, 
+    required_hours.type, 
+    required_hours.total_minutes AS hours,
+    CAST(COALESCE(SUM(assistance_logs.total_daily_minutes), 0) AS BIGINT) AS total_hours,
+    users.password
+FROM users
+INNER JOIN periods ON users.period_id = periods.id
+INNER JOIN required_hours ON users.required_hour_id = required_hours.id
+LEFT JOIN assistance_logs ON users.id = assistance_logs.user_id
+WHERE users.is_admin = 0
+  AND users.deleted_at IS NULL
+GROUP BY 
+    users.id, 
+    users.name, 
+    users.email, 
+    periods.name, 
+    required_hours.type, 
+    required_hours.total_minutes
+ORDER BY users.created_at ASC
+`
+
+type GetNotAdminUsersRow struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Period     string `json:"period"`
+	Type       string `json:"type"`
+	Hours      int64  `json:"hours"`
+	TotalHours int64  `json:"total_hours"`
+	Password   string `json:"password"`
+}
+
+func (q *Queries) GetNotAdminUsers(ctx context.Context) ([]GetNotAdminUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getNotAdminUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNotAdminUsersRow
+	for rows.Next() {
+		var i GetNotAdminUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.Period,
+			&i.Type,
+			&i.Hours,
+			&i.TotalHours,
+			&i.Password,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUsersPasswords = `-- name: GetUsersPasswords :many

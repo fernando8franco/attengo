@@ -8,9 +8,9 @@ CREATE TABLE assistance_logs (
     manual_minutes INTEGER NOT NULL DEFAULT 0,
     total_daily_minutes INTEGER GENERATED ALWAYS AS (
         IFNULL(
-            ((strftime('%s', exit_time) - strftime('%s', entry_time)) / 60) + manual_minutes,
+            (strftime('%s', exit_time) - strftime('%s', entry_time)) / 60, 
             0
-        )
+        ) + manual_minutes
     ) VIRTUAL,
     user_id TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
