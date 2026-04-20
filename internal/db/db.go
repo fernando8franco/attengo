@@ -2,8 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pressly/goose/v3"
 )
 
 func Connect(name string) (*sql.DB, error) {
@@ -17,6 +19,13 @@ func Connect(name string) (*sql.DB, error) {
 
 	if err := conn.Ping(); err != nil {
 		return nil, err
+	}
+
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		log.Fatal(err)
+	}
+	if err := goose.Up(conn, "./db/migrations"); err != nil {
+		log.Fatal(err)
 	}
 
 	return conn, nil
